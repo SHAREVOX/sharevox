@@ -16,11 +16,26 @@ import { UpdateInfo } from "../type/preload";
 import semver from "semver";
 
 export default defineComponent({
-  setup() {
+  props: {
+    isVoicevox: {
+      type: Boolean,
+      default: false,
+      required: false,
+    },
+  },
+  setup(props) {
     const store = useStore();
 
     const updateInfos = ref<UpdateInfo[]>();
-    store.dispatch("GET_UPDATE_INFOS").then((obj) => (updateInfos.value = obj));
+    if (props.isVoicevox) {
+      store
+        .dispatch("GET_VOICEVOX_UPDATE_INFOS")
+        .then((obj) => (updateInfos.value = obj));
+    } else {
+      store
+        .dispatch("GET_UPDATE_INFOS")
+        .then((obj) => (updateInfos.value = obj));
+    }
 
     let isCheckingFinished = ref<boolean>(false);
 
@@ -72,7 +87,7 @@ export default defineComponent({
 
       let html = "";
 
-      if (isUpdateAvailable.value) {
+      if (!props.isVoicevox && isUpdateAvailable.value) {
         html += `<h3>最新バージョン ${latestVersion.value} が見つかりました</h3>`;
         html += `<a href="https://sharevox.app/" target="_blank">ダウンロードページ</a>`;
       }

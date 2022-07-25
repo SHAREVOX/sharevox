@@ -700,6 +700,10 @@ type IndexStoreTypes = {
     action(): Promise<Record<string, string>[]>;
   };
 
+  GET_VOICEVOX_UPDATE_INFOS: {
+    action(): Promise<UpdateInfo[]>;
+  };
+
   GET_UPDATE_INFOS: {
     action(): Promise<UpdateInfo[]>;
   };

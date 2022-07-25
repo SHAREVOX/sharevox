@@ -37,6 +37,11 @@ export type IpcIHData = {
     return: Record<string, string>[];
   };
 
+  GET_VOICEVOX_UPDATE_INFOS: {
+    args: [];
+    return: UpdateInfo[];
+  };
+
   GET_UPDATE_INFOS: {
     args: [];
     return: UpdateInfo[];

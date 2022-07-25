@@ -25,6 +25,7 @@ export interface Sandbox {
   getHowToUseText(): Promise<string>;
   getPolicyText(): Promise<string>;
   getOssLicenses(): Promise<Record<string, string>[]>;
+  getVoicevoxUpdateInfos(): Promise<UpdateInfo[]>;
   getUpdateInfos(): Promise<UpdateInfo[]>;
   getOssCommunityInfos(): Promise<string>;
   getQAndAText(): Promise<string>;

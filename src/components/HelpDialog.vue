@@ -58,7 +58,7 @@
                     />
                   </q-toolbar>
                 </q-header>
-                <component :is="page.component" />
+                <component :is="page.component" v-bind="page.props" />
               </div>
             </q-tab-panel>
           </q-tab-panels>
@@ -81,6 +81,7 @@ import ContactInfo from "@/components/ContactInfo.vue";
 type Page = {
   name: string;
   component: Component;
+  props?: Record<string, unknown>;
 };
 
 export default defineComponent({
@@ -119,6 +120,13 @@ export default defineComponent({
       {
         name: "ライセンス情報",
         component: OssLicense,
+      },
+      {
+        name: "VOICEVOXアップデート情報",
+        component: UpdateInfo,
+        props: {
+          isVoicevox: true,
+        },
       },
       {
         name: "アップデート情報",

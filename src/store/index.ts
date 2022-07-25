@@ -86,6 +86,9 @@ export const indexStore: VoiceVoxStoreOptions<
     async GET_OSS_LICENSES() {
       return await window.electron.getOssLicenses();
     },
+    async GET_VOICEVOX_UPDATE_INFOS() {
+      return await window.electron.getVoicevoxUpdateInfos();
+    },
     async GET_UPDATE_INFOS() {
       return await window.electron.getUpdateInfos();
     },

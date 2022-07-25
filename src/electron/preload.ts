@@ -48,6 +48,10 @@ const api: Sandbox = {
     return await ipcRendererInvoke("GET_OSS_LICENSES");
   },
 
+  getVoicevoxUpdateInfos: async () => {
+    return await ipcRendererInvoke("GET_VOICEVOX_UPDATE_INFOS");
+  },
+
   getUpdateInfos: async () => {
     return await ipcRendererInvoke("GET_UPDATE_INFOS");
   },
