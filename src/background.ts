@@ -67,7 +67,7 @@ let win: BrowserWindow;
 
 // 多重起動防止
 if (!isDevelopment && !app.requestSingleInstanceLock()) {
-  log.info("VOICEVOX already running. Cancelling launch");
+  log.info("SHAREVOX already running. Cancelling launch");
   app.quit();
 }
 
@@ -641,7 +641,7 @@ async function restartEngine(engineId: string) {
 }
 
 // temp dir
-const tempDir = path.join(app.getPath("temp"), "VOICEVOX");
+const tempDir = path.join(app.getPath("temp"), "SHAREVOX");
 if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir);
 }
@@ -674,6 +674,11 @@ const contactText = fs.readFileSync(path.join(__static, "contact.md"), "utf-8");
 const qAndAText = fs.readFileSync(path.join(__static, "qAndA.md"), "utf-8");
 
 // アップデート情報の読み込み
+const voicevoxUpdateInfos = JSON.parse(
+  fs.readFileSync(path.join(__static, "voicevoxUpdateInfos.json"), {
+    encoding: "utf-8",
+  })
+);
 const updateInfos = JSON.parse(
   fs.readFileSync(path.join(__static, "updateInfos.json"), {
     encoding: "utf-8",
@@ -818,7 +823,7 @@ async function createWindow() {
 
 const menuTemplateForMac: Electron.MenuItemConstructorOptions[] = [
   {
-    label: "VOICEVOX",
+    label: "SHAREVOX",
     submenu: [{ role: "quit" }],
   },
   {
@@ -865,6 +870,10 @@ ipcMainHandle("GET_POLICY_TEXT", () => {
 
 ipcMainHandle("GET_OSS_LICENSES", () => {
   return ossLicenses;
+});
+
+ipcMainHandle("GET_VOICEVOX_UPDATE_INFOS", () => {
+  return voicevoxUpdateInfos;
 });
 
 ipcMainHandle("GET_UPDATE_INFOS", () => {
@@ -922,7 +931,7 @@ ipcMainHandle("SHOW_PROJECT_SAVE_DIALOG", async (_, { title, defaultPath }) => {
   const result = await dialog.showSaveDialog(win, {
     title,
     defaultPath,
-    filters: [{ name: "VOICEVOX Project file", extensions: ["vvproj"] }],
+    filters: [{ name: "SHAREVOX Project file", extensions: ["svproj"] }],
     properties: ["showOverwriteConfirmation"],
   });
   if (result.canceled) {
@@ -934,7 +943,7 @@ ipcMainHandle("SHOW_PROJECT_SAVE_DIALOG", async (_, { title, defaultPath }) => {
 ipcMainHandle("SHOW_PROJECT_LOAD_DIALOG", async (_, { title }) => {
   const result = await dialog.showOpenDialog(win, {
     title,
-    filters: [{ name: "VOICEVOX Project file", extensions: ["vvproj"] }],
+    filters: [{ name: "SHAREVOX Project file", extensions: ["svproj"] }],
     properties: ["openFile"],
   });
   if (result.canceled) {

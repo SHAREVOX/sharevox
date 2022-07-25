@@ -21,7 +21,7 @@
       {{
         (isEdited ? "*" : "") +
         (projectName !== undefined ? projectName + " - " : "") +
-        "VOICEVOX" +
+        "SHAREVOX" +
         (currentVersion ? " - Ver. " + currentVersion + " - " : "") +
         (useGpu ? "GPU" : "CPU")
       }}

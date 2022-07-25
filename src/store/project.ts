@@ -96,7 +96,7 @@ export const projectStore: VoiceVoxStoreOptions<
           filePath = ret[0];
         }
 
-        const projectFileErrorMsg = `VOICEVOX Project file "${filePath}" is a invalid file.`;
+        const projectFileErrorMsg = `SHAREVOX Project file "${filePath}" is a invalid file.`;
 
         try {
           const buf = await window.electron.readFile({ filePath });
@@ -299,7 +299,7 @@ export const projectStore: VoiceVoxStoreOptions<
 
           if (!filePath) {
             // if new project: use generated name
-            defaultPath = buildProjectFileName(context.state, "vvproj");
+            defaultPath = buildProjectFileName(context.state, "svproj");
           } else {
             // if saveAs for existing project: use current project path
             defaultPath = filePath;
@@ -403,7 +403,7 @@ export const projectSchema = {
       elements: { type: "string" },
     },
     audioItems: {
-      // description: "VOICEVOX states per cell",
+      // description: "SHAREVOX states per cell",
       values: audioItemSchema,
     },
   },

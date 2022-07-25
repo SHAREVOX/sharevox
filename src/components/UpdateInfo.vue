@@ -33,7 +33,7 @@ export default defineComponent({
         currentVersion.value = obj.version;
       })
       .then(() => {
-        fetch("https://api.github.com/repos/VOICEVOX/voicevox/releases", {
+        fetch("https://api.github.com/repos/SHAREVOX/sharevox/releases", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export default defineComponent({
 
       if (isUpdateAvailable.value) {
         html += `<h3>最新バージョン ${latestVersion.value} が見つかりました</h3>`;
-        html += `<a href="https://voicevox.hiroshiba.jp/" target="_blank">ダウンロードページ</a>`;
+        html += `<a href="https://sharevox.app/" target="_blank">ダウンロードページ</a>`;
       }
 
       html += `<hr />`;

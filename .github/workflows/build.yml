@@ -21,7 +21,7 @@ on:
         type: boolean
 
 env:
-  VOICEVOX_ENGINE_REPO_URL: "https://github.com/VOICEVOX/voicevox_engine"
+  VOICEVOX_ENGINE_REPO_URL: "https://github.com/SHAREVOX/sharevox_engine"
   VOICEVOX_ENGINE_VERSION: 0.13.0
   VOICEVOX_RESOURCE_VERSION: 0.13.0
   VOICEVOX_EDITOR_VERSION:
@@ -49,45 +49,45 @@ jobs:
           # Linux NVIDIA GPU
           - artifact_name: linux-noengine-prepackage
             artifact_path: dist_electron/linux-unpacked
-            package_name: voicevox
-            linux_artifact_name: "VOICEVOX.${ext}"
-            linux_executable_name: voicevox
+            package_name: sharevox
+            linux_artifact_name: "SHAREVOX.${ext}"
+            linux_executable_name: sharevox
             sed_name: sed
             os: ubuntu-18.04
           # Linux CPU
           - artifact_name: linux-noengine-cpu-prepackage
             artifact_path: dist_electron/linux-unpacked
-            package_name: voicevox-cpu
-            linux_artifact_name: "VOICEVOX.${ext}"
-            linux_executable_name: voicevox
+            package_name: sharevox-cpu
+            linux_artifact_name: "SHAREVOX.${ext}"
+            linux_executable_name: sharevox
             sed_name: sed
             os: ubuntu-18.04
           # Windows CUDA
           - artifact_name: windows-noengine-prepackage
             artifact_path: dist_electron/win-unpacked
-            package_name: voicevox-cuda
-            nsis_web_artifact_name: "VOICEVOX-CUDA Web Setup ${version}.${ext}"
+            package_name: sharevox-cuda
+            nsis_web_artifact_name: "SHAREVOX-CUDA Web Setup ${version}.${ext}"
             sed_name: sed
             os: windows-2019
           # Windows CPU
           - artifact_name: windows-noengine-cpu-prepackage
             artifact_path: dist_electron/win-unpacked
-            package_name: voicevox-cpu
-            nsis_web_artifact_name: "VOICEVOX-CPU Web Setup ${version}.${ext}"
+            package_name: sharevox-cpu
+            nsis_web_artifact_name: "SHAREVOX-CPU Web Setup ${version}.${ext}"
             sed_name: sed
             os: windows-2019
           # Windows DirectML
           - artifact_name: windows-noengine-directml-prepackage
             artifact_path: dist_electron/win-unpacked
-            package_name: voicevox
-            nsis_web_artifact_name: "VOICEVOX Web Setup ${version}.${ext}"
+            package_name: sharevox
+            nsis_web_artifact_name: "SHAREVOX Web Setup ${version}.${ext}"
             sed_name: sed
             os: windows-2019
           # macOS CPU
           - artifact_name: macos-noengine-cpu-prepackage
             artifact_path: dist_electron/mac
-            package_name: voicevox-cpu
-            macos_artifact_name: "VOICEVOX.${ext}"
+            package_name: sharevox-cpu
+            macos_artifact_name: "SHAREVOX.${ext}"
             sed_name: gsed
             os: macos-11
 
@@ -108,7 +108,7 @@ jobs:
       - name: Replace package name & version
         shell: bash
         run: |
-          "${{ matrix.sed_name }}" -i 's/"name": "voicevox"/"name": "${{ matrix.package_name }}"/' package.json
+          "${{ matrix.sed_name }}" -i 's/"name": "sharevox"/"name": "${{ matrix.package_name }}"/' package.json
           # "${{ matrix.sed_name }}" -i 's/productName: "VOICEVOX"/productName: "${{ matrix.product_name }}"/' vue.config.js
 
           "${{ matrix.sed_name }}" -i 's/"version": "999.999.999"/"version": "${{ env.VOICEVOX_EDITOR_VERSION }}"/' package.json
@@ -177,7 +177,7 @@ jobs:
       - name: Checkout Product Version Resource
         uses: actions/checkout@v2
         with:
-          repository: VOICEVOX/voicevox_resource
+          repository: SHAREVOX/sharevox_resource
           ref: ${{ env.VOICEVOX_RESOURCE_VERSION }}
           path: resource
 
@@ -317,41 +317,41 @@ jobs:
           - artifact_name: linux-nvidia-prepackage
             noengine_artifact_name: linux-noengine-prepackage
             voicevox_engine_asset_name: linux-nvidia
-            linux_executable_name: voicevox
-            compressed_artifact_name: voicevox-linux-nvidia
+            linux_executable_name: sharevox
+            compressed_artifact_name: sharevox-linux-nvidia
             app_asar_dir: prepackage/resources
           # Linux CPU
           - artifact_name: linux-cpu-prepackage
             noengine_artifact_name: linux-noengine-cpu-prepackage
             voicevox_engine_asset_name: linux-cpu
-            linux_executable_name: voicevox
-            compressed_artifact_name: voicevox-linux-cpu
+            linux_executable_name: sharevox
+            compressed_artifact_name: sharevox-linux-cpu
             app_asar_dir: prepackage/resources
           # Windows NVIDIA GPU
           - artifact_name: windows-nvidia-prepackage
             noengine_artifact_name: windows-noengine-prepackage
             voicevox_engine_asset_name: windows-nvidia
-            compressed_artifact_name: voicevox-windows-nvidia
+            compressed_artifact_name: sharevox-windows-nvidia
             app_asar_dir: prepackage/resources
           # Windows CPU
           - artifact_name: windows-cpu-prepackage
             noengine_artifact_name: windows-noengine-cpu-prepackage
             voicevox_engine_asset_name: windows-cpu
-            compressed_artifact_name: voicevox-windows-cpu
+            compressed_artifact_name: sharevox-windows-cpu
             app_asar_dir: prepackage/resources
           # Windows DirectML
           - artifact_name: windows-directml-prepackage
             noengine_artifact_name: windows-noengine-directml-prepackage
             voicevox_engine_asset_name: windows-directml
-            compressed_artifact_name: voicevox-windows-directml
+            compressed_artifact_name: sharevox-windows-directml
             app_asar_dir: prepackage/resources
           # macOS CPU
           - artifact_name: macos-cpu-prepackage
             noengine_artifact_name: macos-noengine-cpu-prepackage
             voicevox_engine_asset_name: macos-x64
-            macos_executable_name: VOICEVOX
-            compressed_artifact_name: voicevox-macos-cpu
-            app_asar_dir: prepackage/VOICEVOX.app/Contents/Resources
+            macos_executable_name: SHAREVOX
+            compressed_artifact_name: sharevox-macos-cpu
+            app_asar_dir: prepackage/SHAREVOX.app/Contents/Resources
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -395,10 +395,10 @@ jobs:
           path: ./prepackage
 
       # Download VOICEVOX ENGINE
-      - name: Create directory voicevox_engine/download
+      - name: Create directory sharevox_engine/download
         shell: bash
         run: |
-          mkdir -p voicevox_engine/download
+          mkdir -p sharevox_engine/download
 
       # NOTE: VOICEVOX ENGINE should not be cached since it has a size of several GB
       #       and actions/cache has a limit of 5GB per repository.
@@ -420,23 +420,23 @@ jobs:
         env:
           VOICEVOX_ENGINE_RELEASE_URL: ${{ env.VOICEVOX_ENGINE_REPO_URL }}/releases/download/${{ env.VOICEVOX_ENGINE_VERSION }}
         run: |
-          curl -L -o "voicevox_engine/download/list.txt" "${{ env.VOICEVOX_ENGINE_RELEASE_URL }}/${{ matrix.voicevox_engine_asset_name }}.7z.txt"
-          cat "voicevox_engine/download/list.txt" | xargs -I '%' curl -L -o "voicevox_engine/download/%" "${{ env.VOICEVOX_ENGINE_RELEASE_URL }}/%"
+          curl -L -o "sharevox_engine/download/list.txt" "${{ env.VOICEVOX_ENGINE_RELEASE_URL }}/${{ matrix.voicevox_engine_asset_name }}.7z.txt"
+          cat "sharevox_engine/download/list.txt" | xargs -I '%' curl -L -o "sharevox_engine/download/%" "${{ env.VOICEVOX_ENGINE_RELEASE_URL }}/%"
 
       - name: Extract VOICEVOX ENGINE
         shell: bash
         run: |
-          mkdir -p voicevox_engine/tmp
+          mkdir -p sharevox_engine/tmp
 
           # Extract first file to extract all parts
           # Destination: voicevox_engine/tmp/${{ matrix.voicevox_engine_asset_name }}/
-          7z x "voicevox_engine/download/$(head -n1 voicevox_engine/download/list.txt)" -ovoicevox_engine/tmp/
+          7z x "sharevox_engine/download/$(head -n1 sharevox_engine/download/list.txt)" -osharevox_engine/tmp/
 
-          mkdir -p voicevox_engine/voicevox_engine
-          mv "voicevox_engine/tmp/${{ matrix.voicevox_engine_asset_name }}"/* voicevox_engine/voicevox_engine
+          mkdir -p sharevox_engine/sharevox_engine
+          mv "sharevox_engine/tmp/${{ matrix.voicevox_engine_asset_name }}"/* sharevox_engine/sharevox_engine
 
           # remove downloads to free space
-          rm -rf voicevox_engine/download voicevox_engine/tmp
+          rm -rf sharevox_engine/download sharevox_engine/tmp
 
       - name: Merge licenses.json (ENGINE, VOICEVOX)
         shell: bash
@@ -445,7 +445,7 @@ jobs:
           asar extract "${{ matrix.app_asar_dir }}/app.asar" "${{ matrix.app_asar_dir }}/app"
           rm "${{ matrix.app_asar_dir }}/app.asar"
 
-          mv voicevox_engine/voicevox_engine/licenses.json engine_licenses.json
+          mv sharevox_engine/sharevox_engine/licenses.json engine_licenses.json
           npm run license:merge -- -o "${{ matrix.app_asar_dir }}/app/licenses.json" -i engine_licenses.json -i "${{ matrix.app_asar_dir }}/app/licenses.json"
 
           # Repack asar
@@ -456,15 +456,15 @@ jobs:
         if: startsWith(matrix.artifact_name, 'windows-') || startsWith(matrix.artifact_name, 'linux-')
         shell: bash
         run: |
-          mv voicevox_engine/voicevox_engine/* prepackage/
-          rm -rf voicevox_engine
+          mv sharevox_engine/sharevox_engine/* prepackage/
+          rm -rf sharevox_engine
 
       - name: Merge VOICEVOX ENGINE into prepackage/VOICEVOX.app/Contents/MacOS/
         if: startsWith(matrix.artifact_name, 'macos-')
         shell: bash
         run: |
-          mv voicevox_engine/voicevox_engine/* prepackage/VOICEVOX.app/Contents/MacOS/
-          rm -rf voicevox_engine
+          mv sharevox_engine/sharevox_engine/* prepackage/SHAREVOX.app/Contents/MacOS/
+          rm -rf sharevox_engine
 
       - name: Show disk space (debug info)
         shell: bash
@@ -489,26 +489,26 @@ jobs:
         if: startsWith(matrix.artifact_name, 'macos-') # macOS
         shell: bash
         run: |
-          chmod +x "prepackage/VOICEVOX.app/Contents/MacOS/${{ matrix.macos_executable_name }}"
-          chmod +x "prepackage/VOICEVOX.app/Contents/MacOS/run"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper (GPU).app/Contents/MacOS/VOICEVOX Helper (GPU)"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper (Plugin).app/Contents/MacOS/VOICEVOX Helper (Plugin)"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper (Renderer).app/Contents/MacOS/VOICEVOX Helper (Renderer)"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper.app/Contents/MacOS/VOICEVOX Helper"
+          chmod +x "prepackage/SHAREVOX.app/Contents/MacOS/${{ matrix.macos_executable_name }}"
+          chmod +x "prepackage/SHAREVOX.app/Contents/MacOS/run"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper (GPU).app/Contents/MacOS/SHAREVOX Helper (GPU)"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper (Plugin).app/Contents/MacOS/SHAREVOX Helper (Plugin)"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper (Renderer).app/Contents/MacOS/SHAREVOX Helper (Renderer)"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper.app/Contents/MacOS/SHAREVOX Helper"
 
       # NOTE: actions/upload-artifact@v2 does not upload `**.lproj` directories, which are an empty directory.
       #       Make `ja.lproj` directory because it is necessary for Japanese localization on macOS.
       - name: Make .lproj directories in Resources directory of VOICEVOX.app
         if: startsWith(matrix.artifact_name, 'macos-')
         shell: bash
-        run: mkdir -p prepackage/VOICEVOX.app/Contents/Resources/ja.lproj prepackage/VOICEVOX.app/Contents/Resources/en.lproj
+        run: mkdir -p prepackage/SHAREVOX.app/Contents/Resources/ja.lproj prepackage/SHAREVOX.app/Contents/Resources/en.lproj
 
       - name: Create Linux tar.gz
         if: startsWith(matrix.artifact_name, 'linux-')
         shell: bash
         run: |
-          mv prepackage VOICEVOX
-          tar cfz "${{ matrix.compressed_artifact_name }}-${{ env.VOICEVOX_EDITOR_VERSION }}.tar.gz" VOICEVOX/
+          mv prepackage SHAREVOX
+          tar cfz "${{ matrix.compressed_artifact_name }}-${{ env.VOICEVOX_EDITOR_VERSION }}.tar.gz" SHAREVOX/
 
       - name: Upload Linux tar.gz artifact
         if: startsWith(matrix.artifact_name, 'linux-')
@@ -521,8 +521,8 @@ jobs:
         if: startsWith(matrix.artifact_name, 'windows-') || startsWith(matrix.artifact_name, 'macos-')
         shell: bash
         run: |
-          mv prepackage VOICEVOX
-          zip "${{ matrix.compressed_artifact_name }}-${{ env.VOICEVOX_EDITOR_VERSION }}.zip" -r VOICEVOX
+          mv prepackage SHAREVOX
+          zip "${{ matrix.compressed_artifact_name }}-${{ env.VOICEVOX_EDITOR_VERSION }}.zip" -r SHAREVOX
 
       - name: Upload Windows & Mac zip artifact
         if: startsWith(matrix.artifact_name, 'windows-') || startsWith(matrix.artifact_name, 'macos-')
@@ -553,46 +553,46 @@ jobs:
           # Linux NVIDIA GPU
           - artifact_name: linux-nvidia-appimage
             engine_artifact_name: linux-nvidia-prepackage
-            package_name: voicevox
-            linux_artifact_name: "VOICEVOX.${ext}"
-            linux_executable_name: voicevox
+            package_name: sharevox
+            linux_artifact_name: "SHAREVOX.${ext}"
+            linux_executable_name: sharevox
             sed_name: sed
             os: ubuntu-18.04
           # Linux CPU
           - artifact_name: linux-cpu-appimage
             engine_artifact_name: linux-cpu-prepackage
-            package_name: voicevox-cpu
-            linux_artifact_name: "VOICEVOX.${ext}"
-            linux_executable_name: voicevox
+            package_name: sharevox-cpu
+            linux_artifact_name: "SHAREVOX.${ext}"
+            linux_executable_name: sharevox
             sed_name: sed
             os: ubuntu-18.04
           # Windows NVIDIA GPU
           - artifact_name: windows-nvidia-nsis-web
             engine_artifact_name: windows-nvidia-prepackage
-            package_name: voicevox-cuda
-            nsis_web_artifact_name: "VOICEVOX-CUDA Web Setup ${version}.${ext}"
+            package_name: sharevox-cuda
+            nsis_web_artifact_name: "SHAREVOX-CUDA Web Setup ${version}.${ext}"
             sed_name: sed
             os: windows-2019
           # Windows CPU
           - artifact_name: windows-cpu-nsis-web
             engine_artifact_name: windows-cpu-prepackage
-            package_name: voicevox-cpu
-            nsis_web_artifact_name: "VOICEVOX-CPU Web Setup ${version}.${ext}"
+            package_name: sharevox-cpu
+            nsis_web_artifact_name: "SHAREVOX-CPU Web Setup ${version}.${ext}"
             sed_name: sed
             os: windows-2019
           # Windows DirectML
           - artifact_name: windows-directml-nsis-web
             engine_artifact_name: windows-directml-prepackage
-            package_name: voicevox
-            nsis_web_artifact_name: "VOICEVOX Web Setup ${version}.${ext}"
+            package_name: sharevox
+            nsis_web_artifact_name: "SHAREVOX Web Setup ${version}.${ext}"
             sed_name: sed
             os: windows-2019
           # macOS CPU
           - artifact_name: macos-cpu-dmg
             engine_artifact_name: macos-cpu-prepackage
-            package_name: voicevox-cpu
-            macos_artifact_name: "VOICEVOX ${version}.${ext}"
-            macos_executable_name: VOICEVOX
+            package_name: sharevox-cpu
+            macos_artifact_name: "SHAREVOX ${version}.${ext}"
+            macos_executable_name: SHAREVOX
             sed_name: gsed
             os: macos-11
 
@@ -618,7 +618,7 @@ jobs:
       - name: Replace package name & version
         shell: bash
         run: |
-          "${{ matrix.sed_name }}" -i 's/"name": "voicevox"/"name": "${{ matrix.package_name }}"/' package.json
+          "${{ matrix.sed_name }}" -i 's/"name": "sharevox"/"name": "${{ matrix.package_name }}"/' package.json
           # "${{ matrix.sed_name }}" -i 's/productName: "VOICEVOX"/productName: "${{ matrix.product_name }}"/' vue.config.js
 
           "${{ matrix.sed_name }}" -i 's/"version": "999.999.999"/"version": "${{ env.VOICEVOX_EDITOR_VERSION }}"/' package.json
@@ -640,19 +640,19 @@ jobs:
         if: endsWith(matrix.artifact_name, '-dmg') # macOS
         shell: bash
         run: |
-          chmod +x "prepackage/VOICEVOX.app/Contents/MacOS/${{ matrix.macos_executable_name }}"
-          chmod +x "prepackage/VOICEVOX.app/Contents/MacOS/run"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper (GPU).app/Contents/MacOS/VOICEVOX Helper (GPU)"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper (Plugin).app/Contents/MacOS/VOICEVOX Helper (Plugin)"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper (Renderer).app/Contents/MacOS/VOICEVOX Helper (Renderer)"
-          chmod +x "prepackage/VOICEVOX.app/Contents/Frameworks/VOICEVOX Helper.app/Contents/MacOS/VOICEVOX Helper"
+          chmod +x "prepackage/SHAREVOX.app/Contents/MacOS/${{ matrix.macos_executable_name }}"
+          chmod +x "prepackage/SHAREVOX.app/Contents/MacOS/run"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper (GPU).app/Contents/MacOS/SHAREVOX Helper (GPU)"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper (Plugin).app/Contents/MacOS/SHAREVOX Helper (Plugin)"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper (Renderer).app/Contents/MacOS/SHAREVOX Helper (Renderer)"
+          chmod +x "prepackage/SHAREVOX.app/Contents/Frameworks/SHAREVOX Helper.app/Contents/MacOS/SHAREVOX Helper"
 
       # NOTE: actions/upload-artifact@v2 does not upload `**.lproj` directories, which are an empty directory.
       #       Make `ja.lproj` directory because it is necessary for Japanese localization on macOS.
       - name: Make .lproj directories in Resources directory of VOICEVOX.app
         if: endsWith(matrix.artifact_name, '-dmg')
         shell: bash
-        run: mkdir -p prepackage/VOICEVOX.app/Contents/Resources/ja.lproj prepackage/VOICEVOX.app/Contents/Resources/en.lproj
+        run: mkdir -p prepackage/SHAREVOX.app/Contents/Resources/ja.lproj prepackage/SHAREVOX.app/Contents/Resources/en.lproj
 
       - name: Show disk space (debug info)
         shell: bash
@@ -730,7 +730,7 @@ jobs:
         shell: bash
         env:
           MACOS_ARTIFACT_NAME: ${{ matrix.macos_artifact_name }}
-        run: npm run electron:build_pnever -- --prepackaged "prepackage/VOICEVOX.app"
+        run: npm run electron:build_pnever -- --prepackaged "prepackage/SHAREVOX.app"
 
       - name: Reset Code Signing Envs
         if: endsWith(matrix.artifact_name, '-nsis-web') && github.event.inputs.code_signing == 'true'
@@ -809,9 +809,9 @@ jobs:
           - macos-cpu-prepackage-zip
         include:
           - artifact_name: linux-nvidia-appimage
-            appimage_7z_name: VOICEVOX.AppImage
+            appimage_7z_name: SHAREVOX.AppImage
           - artifact_name: linux-cpu-appimage
-            appimage_7z_name: VOICEVOX-CPU.AppImage
+            appimage_7z_name: SHAREVOX-CPU.AppImage
 
     runs-on: ${{ matrix.os }}
     steps:

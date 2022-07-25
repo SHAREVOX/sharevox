@@ -4,7 +4,7 @@ const path = require("path");
 const process = require("process");
 
 const VOICEVOX_ENGINE_DIR =
-  process.env.VOICEVOX_ENGINE_DIR ?? "../voicevox_engine/run.dist/";
+  process.env.VOICEVOX_ENGINE_DIR ?? "../sharevox_engine/run.dist/";
 
 // ${productName} Web Setup ${version}.${ext}
 const NSIS_WEB_ARTIFACT_NAME = process.env.NSIS_WEB_ARTIFACT_NAME;
@@ -28,8 +28,8 @@ module.exports = {
       builderOptions: {
         fileAssociations: [
           {
-            ext: "vvproj",
-            name: "VOICEVOX Project file",
+            ext: "svproj",
+            name: "SHAREVOX Project file",
             role: "Editor",
           },
         ],
@@ -42,9 +42,9 @@ module.exports = {
           },
         ],
         // electron-builder installer
-        productName: "VOICEVOX",
-        appId: "jp.hiroshiba.voicevox",
-        copyright: "Hiroshiba Kazuyuki",
+        productName: "SHAREVOX",
+        appId: "app.sharevox",
+        copyright: "y-chan",
         afterAllArtifactBuild: path.resolve(
           __dirname,
           "build",
@@ -71,7 +71,7 @@ module.exports = {
         },
         publish: {
           provider: "github",
-          repo: "voicevox",
+          repo: "sharevox",
           vPrefixedTagName: false,
         },
         linux: {
@@ -81,7 +81,7 @@ module.exports = {
             LINUX_EXECUTABLE_NAME !== "" ? LINUX_EXECUTABLE_NAME : undefined,
           icon: "public/icon.png",
           category: "AudioVideo",
-          mimeTypes: ["application/x-voicevox"],
+          mimeTypes: ["application/x-sharevox"],
           target: [
             {
               target: "AppImage",

@@ -1,15 +1,15 @@
-# VOICEVOX
+# SHAREVOX 
 
-[VOICEVOX](https://voicevox.hiroshiba.jp/) のエディターです。
+[SHAREVOX](https://sharevox.app/) のエディターです。
 
-（エンジンは [VOICEVOX ENGINE](https://github.com/VOICEVOX/voicevox_engine/) 、
-コアは [VOICEVOX CORE](https://github.com/VOICEVOX/voicevox_core/) 、
+（エンジンは [SHAREVOX ENGINE](https://github.com/SHAREVOX/sharevox_engine/) 、
+コアは [SHAREVOX CORE](https://github.com/SHAREVOX/sharevox_core/) 、
 全体構成は [こちら](./docs/全体構成.md) に詳細があります。）
 
 ## 環境構築
 
 [.node-version](.node-version) に記載されているバージョンの Node.js をインストールしてください。
-Node.js をインストール後、[このリポジトリ](https://github.com/VOICEVOX/voicevox.git) を
+Node.js をインストール後、[このリポジトリ](https://github.com/SHAREVOX/sharevox.git) を
 Fork して `git clone` し、次のコマンドを実行してください。
 
 Node.js の管理ツール ([nvs](https://github.com/jasongin/nvs)など)を利用すると、
@@ -21,15 +21,15 @@ npm ci
 
 ## 実行
 
-`.env.production`をコピーして`.env`を作成し、`DEFAULT_ENGINE_INFOS`内の`executionFilePath`に`voicevox_engine`があるパスを指定します。
-[製品版 VOICEVOX](https://voicevox.hiroshiba.jp/) のディレクトリのパスを指定すれば動きます。
+`.env.production`をコピーして`.env`を作成し、`DEFAULT_ENGINE_INFOS`内の`executionFilePath`に`sharevox_engine`があるパスを指定します。
+[製品版 SHAREVOX](https://sharevox.app/) のディレクトリのパスを指定すれば動きます。
 Windowsの場合でもパスの区切り文字は`\`ではなく`/`なのでご注意ください。
 
 ```bash
 npm run electron:serve
 ```
 
-音声合成エンジンのリポジトリはこちらです <https://github.com/VOICEVOX/voicevox_engine>
+音声合成エンジンのリポジトリはこちらです <https://github.com/SHAREVOX/sharevox_engine>
 
 ## 貢献者の方へ
 
@@ -52,10 +52,10 @@ npm run test:e2e
 ## 依存ライブラリのライセンス情報の生成
 
 ```bash
-# get licenses.json from voicevox_engine as engine_licenses.json
+# get licenses.json from sharevox_engine as engine_licenses.json
 
-npm run license:generate -- -o voicevox_licenses.json
-npm run license:merge -- -o public/licenses.json -i engine_licenses.json -i voicevox_licenses.json
+npm run license:generate -- -o sharevox_licenses.json
+npm run license:merge -- -o public/licenses.json -i engine_licenses.json -i sharevox_licenses.json
 ```
 
 ## コードフォーマット
@@ -114,5 +114,4 @@ npm run fmt
 
 ## ライセンス
 
-LGPL v3 と、ソースコードの公開が不要な別ライセンスのデュアルライセンスです。
-別ライセンスを取得したい場合は、ヒホ（twitter: [@hiho_karuta](https://twitter.com/hiho_karuta)）に求めてください。
+本ソフトウェアは[LGPL v3](LICENSE)でライセンスされています

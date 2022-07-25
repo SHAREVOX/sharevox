@@ -17,7 +17,7 @@ _readarray(){
 
 cat << 'BANNER'
 +-+-+-+-+-+-+-+-+
-|V|O|I|C|E|V|O|X|
+|S|H|A|R|E|V|O|X|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+
         |I|n|s|t|a|l|l|e|r|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -27,10 +27,10 @@ BANNER
 
 NAME=$(basename "${NAME:-linux-nvidia-appimage}")
 VERSION=$(basename "${VERSION:-}")
-REPO_URL=${REPO_URL:-https://github.com/VOICEVOX/voicevox}
+REPO_URL=${REPO_URL:-https://github.com/SHAREVOX/sharevox}
 
 # Install directory
-APP_DIR=${APP_DIR:-$HOME/.voicevox}
+APP_DIR=${APP_DIR:-$HOME/.sharevox}
 # force install if [ ${FORCE_INSTALL} = 1 ]
 FORCE_INSTALL=${FORCE_INSTALL:-}
 # keep archive if [ ${KEEP_ARCHIVE} = 1 ]
@@ -43,8 +43,8 @@ DESKTOP_ENTRY_INSTALL_DIR=${DESKTOP_ENTRY_INSTALL_DIR:-$HOME/.local/share/applic
 ICON_INSTALL_DIR=${ICON_INSTALL_DIR:-$HOME/.local/share/icons}
 MIME_INSTALL_DIR=${MIME_INSTALL_DIR:-$HOME/.local/share/mime}
 
-if [ "$FORCE_INSTALL" != "1" ] && [ -f "${APP_DIR}/VOICEVOX.AppImage" ]; then
-    echo "[*] VOICEVOX already installed in '${APP_DIR}/VOICEVOX.AppImage'."
+if [ "$FORCE_INSTALL" != "1" ] && [ -f "${APP_DIR}/SHAREVOX.AppImage" ]; then
+    echo "[*] SHAREVOX already installed in '${APP_DIR}/SHAREVOX.AppImage'."
     while true; do
         read -r -p "[*] Replace?(y/n): " yn
         case "$yn" in
@@ -67,7 +67,7 @@ if ! command -v curl &> /dev/null; then
     cat << EOS && exit 1
 [!] Command 'curl' not found
 
-Required to download VOICEVOX
+Required to download SHAREVOX
 
 Ubuntu/Debian:
     sudo apt install curl
@@ -144,7 +144,7 @@ else
     cat << 'EOS'
 [!] libsndfile: not found
 
-Required to run VOICEVOX ENGINE
+Required to run SHAREVOX ENGINE
 
 Ubuntu/Debian:
     sudo apt install libsndfile1
@@ -336,17 +336,17 @@ cat << 'BANNER'
 BANNER
 
 VOICEVOX_INSTALLED_FILES=(
-    ${DESKTOP_ENTRY_INSTALL_DIR}/voicevox.desktop
-    ${ICON_INSTALL_DIR}/voicevox.png
-    ${ICON_INSTALL_DIR}/hicolor/0x0/apps/voicevox.png
-    ${MIME_INSTALL_DIR}/packages/voicevox.xml
+    ${DESKTOP_ENTRY_INSTALL_DIR}/sharevox.desktop
+    ${ICON_INSTALL_DIR}/sharevox.png
+    ${ICON_INSTALL_DIR}/hicolor/0x0/apps/sharevox.png
+    ${MIME_INSTALL_DIR}/packages/sharevox.xml
 )
 
 VOICEVOX_INSTALLED_DIR=(
     ${APP_DIR}
 )
 
-echo "[+] Uninstalling VOICEVOX..."
+echo "[+] Uninstalling SHAREVOX..."
 for i in "\${VOICEVOX_INSTALLED_FILES[@]}"; do
     [ -e "\$i" ] || continue
     echo "[+] Removing '\${i}'..."
@@ -369,7 +369,7 @@ for i in "\${VOICEVOX_INSTALLED_DIR[@]}"; do
     fi
 done
 
-echo "[+] Done! VOICEVOX has been uninstalled."
+echo "[+] Done! SHAREVOX has been uninstalled."
 
 EOS
 
@@ -418,15 +418,15 @@ cp squashfs-root/*.png "${ICON_INSTALL_DIR}"
 echo "[+] Registering file association..."
 
 mkdir -p "${MIME_INSTALL_DIR}/packages"
-cat << EOS > "${MIME_INSTALL_DIR}/packages/voicevox.xml"
+cat << EOS > "${MIME_INSTALL_DIR}/packages/sharevox.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
-    <mime-type type="application/x-voicevox">
-        <comment>VOICEVOX Project file</comment>
-        <comment xml:lang="ja">VOICEVOX プロジェクトファイル</comment>
+    <mime-type type="application/x-sharevox">
+        <comment>SHAREVOX Project file</comment>
+        <comment xml:lang="ja">SHAREVOX プロジェクトファイル</comment>
         <sub-class-of type="application/json" />
-        <glob pattern="*.vvproj" />
-        <icon name="voicevox" />
+        <glob pattern="*.svproj" />
+        <icon name="sharevox" />
     </mime-type>
 </mime-info>
 EOS
@@ -451,4 +451,4 @@ fi
 echo "[+] Removing temporal directory..."
 rm -rf squashfs-root
 
-echo "[+] All done! VOICEVOX ${VERSION} has been installed under '${APP_DIR}'."
+echo "[+] All done! SHAREVOX ${VERSION} has been installed under '${APP_DIR}'."

@@ -1,7 +1,7 @@
 {
-  "name": "voicevox",
+  "name": "sharevox",
   "version": "999.999.999",
-  "author": "Hiroshiba Kazuyuki",
+  "author": "y-chan",
   "private": true,
   "engines": {
     "node": ">=14.20.0 <15",

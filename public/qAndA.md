@@ -24,14 +24,14 @@ GPU 搭載の Windows PC と、Nvidia 製 GPU 搭載の Linux PC に対応して
 
 1. 画面右上の「安全にダウンロードすることはできません」にマウスポインターを合わせます。
 2. 「・・・」→「保存」ボタンの順にクリックします。
-3. VOICEVOX のホームページからダウンロードしたインストーラーなど、安全性が確認できる場合は、「保持する」ボタンをクリックします。アプリケーションやファイルの提供元が不明など、安全性が確認できない場合は、「キャンセル」ボタンをクリックします。VOICEVOX のホームページからダウンロードするインストーラーなどでも「発行元」に「不明」と表示されることがあります。「不明」と表示されても、安全性が確認できる場合は保存してください。
+3. SHAREVOX のホームページからダウンロードしたインストーラーなど、安全性が確認できる場合は、「保持する」ボタンをクリックします。アプリケーションやファイルの提供元が不明など、安全性が確認できない場合は、「キャンセル」ボタンをクリックします。SHAREVOX のホームページからダウンロードするインストーラーなどでも「発行元」に「不明」と表示されることがあります。「不明」と表示されても、安全性が確認できる場合は保存してください。
 
 #### 「一般的にダウンロードされていません」または「お使いのデバイスに問題を起こす可能性があるため、ブロックされました」というメッセージが表示された場合
 
 1. 画面右上の「一般的にダウンロードされていません」または「お使いのデバイスに問題を起こす可能性があるため、ブロックされました」にマウスポインターを合わせます。
 2. 「・・・」→「保存」ボタンの順にクリックします。
 3. 「ダウンロードしているファイルまたはそのソースが信頼できることを確認してから、ファイルを開いてください。」と表示されます。「詳細表示」をクリックします。
-4. VOICEVOX のホームページからダウンロードしたインストーラーなど、安全性が確認できる場合は、「保持する」をクリックします。アプリやファイルの提供元が不明など、安全性が確認できない場合は、「削除」ボタンをクリックします。VOICEVOX のホームページからダウンロードするインストーラーなどでも「発行元」に「不明」と表示されることがあります。「不明」と表示されても、安全性が確認できる場合は保存してください。
+4. SHAREVOX のホームページからダウンロードしたインストーラーなど、安全性が確認できる場合は、「保持する」をクリックします。アプリやファイルの提供元が不明など、安全性が確認できない場合は、「削除」ボタンをクリックします。SHAREVOX のホームページからダウンロードするインストーラーなどでも「発行元」に「不明」と表示されることがあります。「不明」と表示されても、安全性が確認できる場合は保存してください。
 
 ### Q. 「Windows によって PC が保護されました」と表示されます。
 
@@ -45,11 +45,11 @@ GPU 搭載の Windows PC と、Nvidia 製 GPU 搭載の Linux PC に対応して
 
 #### Windows 版
 
-`C:\Users\(ユーザー名)\AppData\Local\Programs\VOICEVOX`
+`C:\Users\(ユーザー名)\AppData\Local\Programs\SHAREVOX`
 
 #### Mac 版
 
-`/Applications/VOICEVOX` もしくは `/Users/(ユーザー名)/Applications/VOICEVOX`
+`/Applications/SHAREVOX` もしくは `/Users/(ユーザー名)/Applications/SHAREVOX`
 
 ### Q. アップデート方法を教えてください。
 
@@ -63,8 +63,8 @@ GPU 搭載の Windows PC と、Nvidia 製 GPU 搭載の Linux PC に対応して
 
 ### Q. 使い方がわかりません。
 
-[使い方](https://voicevox.hiroshiba.jp/how_to_use) Web ページか、ソフトウェアのヘルプからご確認ください。  
-わからないところがあれば Twitter にて `#VOICEVOX` を付けてツイートすると、解決策を教えてくれる方がいらっしゃるかもしれません。
+[使い方](https://sharevox.app/how_to_use) Web ページか、ソフトウェアのヘルプからご確認ください。  
+わからないところがあれば Twitter にて `#SHAREVOX` を付けてツイートすると、解決策を教えてくれる方がいらっしゃるかもしれません。
 
 ### Q. オフラインのパソコンで使用できますか？
 
@@ -75,7 +75,7 @@ GPU 搭載の Windows PC と、Nvidia 製 GPU 搭載の Linux PC に対応して
 ### Q. バグを見つけました。どこに報告すれば良いですか？
 
 バグを見つけられた方はツイッターにてご報告いただけると助かります。  
-VOICEVOX Twitter アカウント [@voicevox_pj](https://twitter.com/voicevox_pj)
+SHAREVOX Twitter アカウント [@sharevox_pj](https://twitter.com/sharevox_pj)
 
 ### Q. バージョンアップすると表示がおかしくなりました。
 
@@ -83,11 +83,11 @@ VOICEVOX Twitter アカウント [@voicevox_pj](https://twitter.com/voicevox_pj)
 
 #### Windows 版
 
-`C:\Users\(ユーザー名)\AppData\Roaming\voicevox` もしくは `C:\Users\(ユーザー名)\AppData\Roaming\voicevox-cpu`
+`C:\Users\(ユーザー名)\AppData\Roaming\sharevox` もしくは `C:\Users\(ユーザー名)\AppData\Roaming\sharevox-cpu`
 
 #### Mac 版
 
-`/Users/(ユーザー名)/Library/Application Support/voicevox-cpu`
+`/Users/(ユーザー名)/Library/Application Support/sharevox-cpu`
 
 ### Q. エンジンの起動が失敗したというエラーが表示されます。
 
@@ -123,18 +123,21 @@ VOICEVOX Twitter アカウント [@voicevox_pj](https://twitter.com/voicevox_pj)
 
 ### Q. 公式イラストや立ち絵はどこからダウンロードできますか？
 
+<!--
 [ボイボ寮](https://voicevox.hiroshiba.jp/dormitory/)から各キャラクターのホームページをご参照ください。
+-->
+各キャラクターのホームページやTwitterアカウント等をご参照ください。
 
 ### Q. 会社や学校で使いたいです。
 
-VOICEVOX で作成された音声は、クレジット表記をして頂ければ商用・非商用問わず使用できます。  
-詳しくは VOICEVOX の利用規約及び各キャラクターの利用規約をご確認ください。
+SHAREVOX で作成された音声は、クレジット表記をして頂ければ商用・非商用問わず使用できます。  
+詳しくは SHAREVOX の利用規約及び各キャラクターの利用規約をご確認ください。
 
-### Q. キャラクターについて質問があります。
+### Q. キャラクター・音声ライブラリについて質問があります。
 
-VOICEVOX は、キャラクターとソフトウェアで権利者が異なります。
-キャラクターに関することを VOICEVOX からお答えすることはできません。
-キャラクター権利者の方にお問い合わせください。
+SHAREVOX は、キャラクター・音声ライブラリとソフトウェアで権利者が異なります。
+キャラクター・音声ライブラリに関することを SHAREVOX からお答えすることはできません。
+キャラクター・音声ライブラリの製作者・権利者の方にお問い合わせください。
 
 ### Q. 電話音声など、音声のみを使いたい場合のクレジット記載はどうすれば良いですか？
 
@@ -143,22 +146,24 @@ VOICEVOX は、キャラクターとソフトウェアで権利者が異なり�
 
 ### Q. クレジット記載を省くにはどうすれば良いですか？
 
+<!--
 #### ずんだもん・四国めたんの場合
 
 商用ライセンスの取得が必要です。[ずんだもん、四国めたん音源利用規約](https://zunko.jp/con_ongen_kiyaku.html)をご確認ください。
 
 #### その他のキャラクターの場合
+-->
 
 現在、クレジット記載を省く手段はご用意しておりません。
 
-### Q. VOICEVOX の開発に協力したいです。
+### Q. SHAREVOX の開発に協力したいです。
 
-不具合の修正など、誰でも VOICEVOX の開発にご参加頂けます。気軽にお越しください。
+不具合の修正など、誰でも SHAREVOX の開発にご参加頂けます。気軽にお越しください。
 
-- [VOICEVOX 全体構成](https://github.com/VOICEVOX/voicevox/blob/main/docs/%E5%85%A8%E4%BD%93%E6%A7%8B%E6%88%90.md)
-- [VOICEVOX エディター](https://github.com/VOICEVOX/voicevox)
-- [VOICEVOX エンジン](https://github.com/VOICEVOX/voicevox_engine)
-- [VOICEVOX コア](https://github.com/VOICEVOX/voicevox_core)
+- [SHAREVOX 全体構成](https://github.com/SHAREVOX/sharevox/blob/main/docs/%E5%85%A8%E4%BD%93%E6%A7%8B%E6%88%90.md)
+- [SHAREVOX エディター](https://github.com/SHAREVOX/sharevox)
+- [SHAREVOX エンジン](https://github.com/SHAREVOX/sharevox_engine)
+- [SHAREVOX コア](https://github.com/SHAREVOX/sharevox_core)
 
 ### Q. 利用規約を遵守できているかどうか教えてください。
 
@@ -167,8 +172,8 @@ VOICEVOX は、キャラクターとソフトウェアで権利者が異なり�
 
 ### Q. 問い合わせ先を教えてください。
 
-ご感想・ご要望は、ぜひ Twitter にてハッシュタグ `#VOICEVOX` を付けてツイートしてください。開発の励みになります。
+ご感想・ご要望は、ぜひ Twitter にてハッシュタグ `#SHAREVOX` を付けてツイートしてください。開発の励みになります。
 
-うまく動かない場合や不具合を見つけられた方は、Twitter にて不具合をハッシュタグ `#VOICEVOX` を付けてツイートしていただくか、VOICEVOX 公式（[@voicevox_pj](https://twitter.com/voicevox_pj)）までご報告ください。
+うまく動かない場合や不具合を見つけられた方は、Twitter にて不具合をハッシュタグ `#SHAREVOX` を付けてツイートしていただくか、SHAREVOX 公式（[@sharevox_pj](https://twitter.com/sharevox_pj)）までご報告ください。
 
-その他、 Q&A に掲載されていないご質問があれば VOICEVOX 公式（[@voicevox_pj](https://twitter.com/voicevox_pj)）にお問い合わせください。
+その他、 Q&A に掲載されていないご質問があれば SHAREVOX 公式（[@sharevox_pj](https://twitter.com/sharevox_pj)）にお問い合わせください。
