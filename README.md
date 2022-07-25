@@ -16,7 +16,7 @@ Node.js の管理ツール ([nvs](https://github.com/jasongin/nvs)など)を利�
 [.node-version](.node-version) を簡単にインストールすることができます。
 
 ```bash
-npm ci
+yarn install
 ```
 
 ## 実行
