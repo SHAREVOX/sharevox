@@ -42,8 +42,8 @@ jobs:
           key: ${{ env.cache-version }}-${{ runner.os }}--electron-builder-cache-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ env.cache-version }}-${{ runner.os }}--electron-builder-cache-
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run markdownlint
-      - run: npm run test:unit
-      - run: npm run electron:build_pnever
+      - run: yarn install
+      - run: yarn lint
+      - run: yarn markdownlint
+      - run: yarn test:unit
+      - run: yarn electron:build_pnever
