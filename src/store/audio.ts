@@ -67,8 +67,8 @@ function parseTextFile(
   defaultStyleIds: DefaultStyleId[],
   userOrderedCharacterInfos: CharacterInfo[]
 ): AudioItem[] {
-  const characters = new Map<string, number>();
-  const uuid2StyleIds = new Map<string, number>();
+  const characters = new Map<string, string>();
+  const uuid2StyleIds = new Map<string, string>();
   for (const defaultStyleId of defaultStyleIds) {
     const speakerUuid = defaultStyleId.speakerUuid;
     const styleId = defaultStyleId.defaultStyleId;
@@ -432,7 +432,7 @@ export const audioStore: VoiceVoxStoreOptions<
     },
     SET_AUDIO_STYLE_ID(
       state,
-      { audioKey, styleId }: { audioKey: string; styleId: number }
+      { audioKey, styleId }: { audioKey: string; styleId: string }
     ) {
       state.audioItems[audioKey].styleId = styleId;
     },
@@ -719,7 +719,7 @@ export const audioStore: VoiceVoxStoreOptions<
       { state, getters, dispatch },
       payload: {
         text?: string;
-        styleId?: number;
+        styleId?: string;
         presetKey?: string;
         baseAudioItem?: AudioItem;
       }
@@ -840,7 +840,7 @@ export const audioStore: VoiceVoxStoreOptions<
         isKana,
       }: {
         text: string;
-        styleId: number;
+        styleId: string;
         isKana?: boolean;
       }
     ) {
@@ -871,7 +871,7 @@ export const audioStore: VoiceVoxStoreOptions<
       {
         accentPhrases,
         styleId,
-      }: { accentPhrases: AccentPhrase[]; styleId: number }
+      }: { accentPhrases: AccentPhrase[]; styleId: string }
     ) {
       const engineId: string | undefined = state.engineIds[0]; // TODO: 複数エンジン対応
       if (engineId === undefined)
@@ -904,7 +904,7 @@ export const audioStore: VoiceVoxStoreOptions<
         copyIndexes,
       }: {
         accentPhrases: AccentPhrase[];
-        styleId: number;
+        styleId: string;
         copyIndexes: number[];
       }
     ) {
@@ -922,7 +922,7 @@ export const audioStore: VoiceVoxStoreOptions<
     },
     FETCH_AUDIO_QUERY(
       { dispatch, state },
-      { text, styleId }: { text: string; styleId: number }
+      { text, styleId }: { text: string; styleId: string }
     ) {
       const engineId: string | undefined = state.engineIds[0]; // TODO: 複数エンジン対応
       if (engineId === undefined)
@@ -1431,7 +1431,7 @@ export const audioStore: VoiceVoxStoreOptions<
           }
         }
 
-        const characters = new Map<number, string>();
+        const characters = new Map<string, string>();
 
         if (!getters.USER_ORDERED_CHARACTER_INFOS)
           throw new Error("USER_ORDERED_CHARACTER_INFOS == undefined");
@@ -1759,7 +1759,7 @@ export const audioCommandStore: VoiceVoxStoreOptions<
     },
     async COMMAND_CHANGE_STYLE_ID(
       { state, dispatch, commit },
-      { audioKey, styleId }: { audioKey: string; styleId: number }
+      { audioKey, styleId }: { audioKey: string; styleId: string }
     ) {
       const query = state.audioItems[audioKey].query;
       try {
@@ -2252,7 +2252,7 @@ export const audioCommandStore: VoiceVoxStoreOptions<
         }: {
           prevAudioKey: string;
           texts: string[];
-          styleId: number;
+          styleId: string;
         }
       ) => {
         const audioKeyItemPairs: { audioKey: string; audioItem: AudioItem }[] =
@@ -2345,7 +2345,7 @@ export const audioCommandStore: VoiceVoxStoreOptions<
     },
     COMMAND_CHANGE_STYLE_ID(
       draft,
-      payload: { styleId: number; audioKey: string } & (
+      payload: { styleId: string; audioKey: string } & (
         | {
             update: "StyleId";
           }

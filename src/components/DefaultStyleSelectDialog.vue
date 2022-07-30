@@ -291,7 +291,7 @@ export default defineComponent({
     const isHoverableStyleItem = ref(true);
 
     const playing =
-      ref<{ speakerUuid: string; styleId: number; index: number }>();
+      ref<{ speakerUuid: string; styleId: string; index: number }>();
 
     const audio = new Audio();
     audio.volume = 0.5;

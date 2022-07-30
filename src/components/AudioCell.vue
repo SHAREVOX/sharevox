@@ -256,7 +256,7 @@ export default defineComponent({
       }
     };
 
-    const changeStyleId = (styleId: number) => {
+    const changeStyleId = (styleId: string) => {
       store.dispatch("COMMAND_CHANGE_STYLE_ID", {
         audioKey: props.audioKey,
         styleId,
