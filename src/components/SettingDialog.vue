@@ -495,7 +495,7 @@
                   :option-label="
                     (item) =>
                       `${item / 1000} kHz${
-                        item === 24000 ? '(デフォルト)' : ''
+                        item === 48000 ? '(デフォルト)' : ''
                       }`
                   "
                   @update:model-value="
