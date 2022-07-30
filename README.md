@@ -101,7 +101,7 @@ shellcheck ./build/*.sh
 音声合成エンジンが起動している状態で以下のコマンドを実行してください。
 
 ```bash
-curl http://127.0.0.1:50021/openapi.json >openapi.json
+curl http://127.0.0.1:50025/openapi.json >openapi.json
 
 $(npm bin)/openapi-generator-cli generate \
     -i openapi.json \
