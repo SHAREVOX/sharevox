@@ -92,7 +92,7 @@ module.exports = {
         mac: {
           artifactName:
             MACOS_ARTIFACT_NAME !== "" ? MACOS_ARTIFACT_NAME : undefined,
-          icon: "public/icon-mac.png",
+          icon: "public/icon.icns",
           category: "public.app-category.utilities",
           target: [
             {
@@ -102,7 +102,7 @@ module.exports = {
           ],
         },
         dmg: {
-          icon: "public/icon-dmg.icns",
+          icon: "public/icon.icns",
         },
       },
     },
