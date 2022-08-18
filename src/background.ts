@@ -291,7 +291,7 @@ const store = new Store<ElectronStoreType>({
         type: "object",
         properties: {
           speakerUuid: { type: "string" },
-          defaultStyleId: { type: "number" },
+          defaultStyleId: { type: "string" },
         },
       },
       default: [],
