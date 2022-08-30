@@ -280,9 +280,10 @@ export default defineComponent({
           selectedCharacter.value = sampleCharacterOrder.value[0];
 
           // 保存済みのキャラクターリストを取得
-          characterOrder.value = store.state.userCharacterOrder.map(
-            (speakerUuid) => characterInfosMap.value[speakerUuid]
-          );
+          // https://github.com/shirowanisan/voicevox/commit/783d10ee9f1b0e09c91b6186dafd3d52de11297a
+          characterOrder.value = store.state.userCharacterOrder
+            .map((speakerUuid) => characterInfosMap.value[speakerUuid])
+            .filter((characterInfo) => characterInfo !== undefined);
 
           // 含まれていないキャラクターを足す
           const notIncludesCharacterInfos = props.characterInfos.filter(
