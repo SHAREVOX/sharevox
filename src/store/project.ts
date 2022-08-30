@@ -315,10 +315,14 @@ export const projectStore: VoiceVoxStoreOptions<
           }
           filePath = ret;
         }
-        const appInfos = await window.electron.getAppInfos();
+        // const appInfos = await window.electron.getAppInfos();
+        // プロジェクトマイグレーション周りのコードを消すと、upstreamマージが面倒になるので、ベースとなったVOICEVOXのバージョン値を用いる
+        const voicevoxUpdateInfos =
+          await window.electron.getVoicevoxUpdateInfos();
+        const appVersion = voicevoxUpdateInfos[0].version;
         const { audioItems, audioKeys } = context.state;
         const projectData: ProjectType = {
-          appVersion: appInfos.version,
+          appVersion,
           audioKeys,
           audioItems,
         };
