@@ -393,7 +393,7 @@ const audioItemSchema = {
     text: { type: "string" },
   },
   optionalProperties: {
-    styleId: { type: "string" },
+    styleId: { type: "int32" },
     query: audioQuerySchema,
     presetKey: { type: "string" },
   },

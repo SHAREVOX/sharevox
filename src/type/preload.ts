@@ -105,7 +105,7 @@ export type AppInfos = {
 
 export type StyleInfo = {
   styleName?: string;
-  styleId: string;
+  styleId: number;
   iconPath: string;
   voiceSamplePaths: string[];
 };
@@ -160,7 +160,7 @@ export type SavingSetting = {
 
 export type DefaultStyleId = {
   speakerUuid: string;
-  defaultStyleId: string;
+  defaultStyleId: number;
 };
 
 export type HotkeySetting = {

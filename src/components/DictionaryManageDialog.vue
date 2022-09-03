@@ -333,7 +333,8 @@ export default defineComponent({
     const yomi = ref("");
 
     const styleId = computed(() => {
-      return store.getters.USER_ORDERED_CHARACTER_INFOS![0].metas.styles[0]
+      if (!store.getters.USER_ORDERED_CHARACTER_INFOS) return 0;
+      return store.getters.USER_ORDERED_CHARACTER_INFOS[0].metas.styles[0]
         .styleId;
     });
 

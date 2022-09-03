@@ -34,7 +34,7 @@ import { QVueGlobals } from "quasar";
 
 export type AudioItem = {
   text: string;
-  styleId?: string;
+  styleId?: number;
   query?: AudioQuery;
   presetKey?: string;
 };
@@ -163,15 +163,15 @@ type AudioStoreTypes = {
   };
 
   IS_INITIALIZED_ENGINE_SPEAKER: {
-    action(payload: { styleId: string }): Promise<boolean>;
+    action(payload: { styleId: number }): Promise<boolean>;
   };
 
   INITIALIZE_ENGINE_SPEAKER: {
-    action(payload: { styleId: string }): void;
+    action(payload: { styleId: number }): void;
   };
 
   SETUP_SPEAKER: {
-    action(payload: { audioKey: string; styleId: string }): void;
+    action(payload: { audioKey: string; styleId: number }): void;
   };
 
   SET_AUDIO_KEY_INITIALIZING_SPEAKER: {
@@ -203,7 +203,7 @@ type AudioStoreTypes = {
   GENERATE_AUDIO_ITEM: {
     action(payload: {
       text?: string;
-      styleId?: string;
+      styleId?: number;
       presetKey?: string;
       baseAudioItem?: AudioItem;
     }): Promise<AudioItem>;
@@ -285,11 +285,11 @@ type AudioStoreTypes = {
   };
 
   FETCH_AUDIO_QUERY: {
-    action(payload: { text: string; styleId: string }): Promise<AudioQuery>;
+    action(payload: { text: string; styleId: number }): Promise<AudioQuery>;
   };
 
   SET_AUDIO_STYLE_ID: {
-    mutation: { audioKey: string; styleId: string };
+    mutation: { audioKey: string; styleId: number };
   };
 
   SET_ACCENT_PHRASES: {
@@ -299,7 +299,7 @@ type AudioStoreTypes = {
   FETCH_ACCENT_PHRASES: {
     action(payload: {
       text: string;
-      styleId: string;
+      styleId: number;
       isKana?: boolean;
     }): Promise<AccentPhrase[]>;
   };
@@ -329,14 +329,14 @@ type AudioStoreTypes = {
   FETCH_MORA_DATA: {
     action(payload: {
       accentPhrases: AccentPhrase[];
-      styleId: string;
+      styleId: number;
     }): Promise<AccentPhrase[]>;
   };
 
   FETCH_AND_COPY_MORA_DATA: {
     action(payload: {
       accentPhrases: AccentPhrase[];
-      styleId: string;
+      styleId: number;
       copyIndexes: number[];
     }): Promise<AccentPhrase[]>;
   };
@@ -475,12 +475,12 @@ type AudioCommandStoreTypes = {
   };
 
   COMMAND_CHANGE_STYLE_ID: {
-    mutation: { styleId: string; audioKey: string } & (
+    mutation: { styleId: number; audioKey: string } & (
       | { update: "StyleId" }
       | { update: "AccentPhrases"; accentPhrases: AccentPhrase[] }
       | { update: "AudioQuery"; query: AudioQuery }
     );
-    action(payload: { audioKey: string; styleId: string }): void;
+    action(payload: { audioKey: string; styleId: number }): void;
   };
 
   COMMAND_CHANGE_ACCENT: {
@@ -617,7 +617,7 @@ type AudioCommandStoreTypes = {
     action(payload: {
       prevAudioKey: string;
       texts: string[];
-      styleId: string;
+      styleId: number;
     }): string[];
   };
 };
