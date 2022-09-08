@@ -14,41 +14,41 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * スピーカーのスタイル情報
+ * model_config.jsonをdictにした機械学習に利用するための情報
  * @export
- * @interface SpeakerStyle
+ * @interface ModelConfig
  */
-export interface SpeakerStyle {
+export interface ModelConfig {
     /**
      * 
      * @type {string}
-     * @memberof SpeakerStyle
+     * @memberof ModelConfig
      */
-    name: string;
+    lengthRegulator: string;
     /**
      * 
      * @type {number}
-     * @memberof SpeakerStyle
+     * @memberof ModelConfig
      */
-    id: number;
+    startId: number;
 }
 
-export function SpeakerStyleFromJSON(json: any): SpeakerStyle {
-    return SpeakerStyleFromJSONTyped(json, false);
+export function ModelConfigFromJSON(json: any): ModelConfig {
+    return ModelConfigFromJSONTyped(json, false);
 }
 
-export function SpeakerStyleFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpeakerStyle {
+export function ModelConfigFromJSONTyped(json: any, ignoreDiscriminator: boolean): ModelConfig {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'name': json['name'],
-        'id': json['id'],
+        'lengthRegulator': json['length_regulator'],
+        'startId': json['start_id'],
     };
 }
 
-export function SpeakerStyleToJSON(value?: SpeakerStyle | null): any {
+export function ModelConfigToJSON(value?: ModelConfig | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -57,8 +57,8 @@ export function SpeakerStyleToJSON(value?: SpeakerStyle | null): any {
     }
     return {
         
-        'name': value.name,
-        'id': value.id,
+        'length_regulator': value.lengthRegulator,
+        'start_id': value.startId,
     };
 }
 
