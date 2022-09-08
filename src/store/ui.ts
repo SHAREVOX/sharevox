@@ -42,6 +42,7 @@ export const uiStoreState: UiStoreState = {
   isAcceptRetrieveTelemetryDialogOpen: false,
   isAcceptTermsDialogOpen: false,
   isDictionaryManageDialogOpen: false,
+  isImportSoundLibraryDialogOpen: false,
   isMaximized: false,
   isPinned: false,
   isFullscreen: false,
@@ -134,6 +135,14 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
       },
       IS_ACCEPT_TERMS_DIALOG_OPEN(state, { isAcceptTermsDialogOpen }) {
         state.isAcceptTermsDialogOpen = isAcceptTermsDialogOpen;
+      },
+      IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN(
+        state,
+        {
+          isImportSoundLibraryDialogOpen,
+        }: { isImportSoundLibraryDialogOpen: boolean }
+      ) {
+        state.isImportSoundLibraryDialogOpen = isImportSoundLibraryDialogOpen;
       },
       SET_USE_GPU(state, { useGpu }: { useGpu: boolean }) {
         state.useGpu = useGpu;
@@ -358,6 +367,30 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
 
         commit("IS_ACCEPT_TERMS_DIALOG_OPEN", {
           isAcceptTermsDialogOpen,
+        });
+      },
+      async IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN(
+        { state, commit },
+        {
+          isImportSoundLibraryDialogOpen,
+        }: { isImportSoundLibraryDialogOpen: boolean }
+      ) {
+        if (
+          state.isImportSoundLibraryDialogOpen ===
+          isImportSoundLibraryDialogOpen
+        )
+          return;
+
+        if (isImportSoundLibraryDialogOpen) {
+          commit("LOCK_UI");
+          commit("LOCK_MENUBAR");
+        } else {
+          commit("UNLOCK_UI");
+          commit("UNLOCK_MENUBAR");
+        }
+
+        commit("IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN", {
+          isImportSoundLibraryDialogOpen,
         });
       },
       async HYDRATE_UI_STORE({ commit }) {

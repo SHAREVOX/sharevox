@@ -128,6 +128,9 @@
     </q-page-container>
   </q-layout>
   <help-dialog v-model="isHelpDialogOpenComputed" />
+  <import-sound-library-dialog
+    v-model="isImportSoundLibraryDialogOpenComputed"
+  />
   <setting-dialog v-model="isSettingDialogOpenComputed" />
   <hotkey-setting-dialog v-model="isHotkeySettingDialogOpenComputed" />
   <header-bar-custom-dialog v-model="isToolbarSettingDialogOpenComputed" />
@@ -174,6 +177,7 @@ import CharacterOrderDialog from "@/components/CharacterOrderDialog.vue";
 import AcceptRetrieveTelemetryDialog from "@/components/AcceptRetrieveTelemetryDialog.vue";
 import AcceptTermsDialog from "@/components/AcceptTermsDialog.vue";
 import DictionaryManageDialog from "@/components/DictionaryManageDialog.vue";
+import ImportSoundLibraryDialog from "@/components/ImportSoundLibraryDialog.vue";
 import { AudioItem, EngineState } from "@/store/type";
 import { QResizeObserver, useQuasar } from "quasar";
 import path from "path";
@@ -204,6 +208,7 @@ export default defineComponent({
     AcceptRetrieveTelemetryDialog,
     AcceptTermsDialog,
     DictionaryManageDialog,
+    ImportSoundLibraryDialog,
   },
 
   setup() {
@@ -633,12 +638,36 @@ export default defineComponent({
         }),
     });
 
+    // 音声ライブラリインストール
+    const isImportSoundLibraryDialogOpenComputed = computed({
+      get: () => store.state.isImportSoundLibraryDialogOpen,
+      set: (val) =>
+        store.dispatch("IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN", {
+          isImportSoundLibraryDialogOpen: val,
+        }),
+    });
+
     // ドラッグ＆ドロップ
     const dragEventCounter = ref(0);
     const loadDraggedFile = (event?: { dataTransfer: DataTransfer }) => {
       if (!event || event.dataTransfer.files.length === 0) return;
       const file = event.dataTransfer.files[0];
       switch (path.extname(file.name)) {
+        case ".zip":
+          $q.dialog({
+            title: "ZIPファイルがインポートされました",
+            message: "ZIPがインポートされました！",
+            ok: {
+              label: "閉じる",
+              flat: true,
+              textColor: "display",
+            },
+          });
+          store.dispatch("IMPORT_SOUND_LIBRARY", {
+            filePath: file.path,
+            confirm: true,
+          });
+          break;
         case ".txt":
           store.dispatch("COMMAND_IMPORT_FROM_FILE", { filePath: file.path });
           break;
@@ -649,7 +678,7 @@ export default defineComponent({
           $q.dialog({
             title: "対応していないファイルです",
             message:
-              "テキストファイル (.txt) とSHAREVOXプロジェクトファイル (.svproj) に対応しています。",
+              "ZIPファイル (.zip) とテキストファイル (.txt) とSHAREVOXプロジェクトファイル (.svproj) に対応しています。",
             ok: {
               label: "閉じる",
               flat: true,
@@ -696,6 +725,7 @@ export default defineComponent({
       isDictionaryManageDialogOpenComputed,
       isAcceptRetrieveTelemetryDialogOpenComputed,
       isAcceptTermsDialogOpenComputed,
+      isImportSoundLibraryDialogOpenComputed,
       dragEventCounter,
       loadDraggedFile,
     };

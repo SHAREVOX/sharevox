@@ -796,6 +796,10 @@ type ProjectStoreTypes = {
   SET_SAVED_LAST_COMMAND_UNIX_MILLISEC: {
     mutation: number | null;
   };
+
+  IMPORT_SOUND_LIBRARY: {
+    action(payload: { filePath?: string; confirm?: boolean }): void;
+  };
 };
 
 export type ProjectGetters = StoreType<ProjectStoreTypes, "getter">;
@@ -905,6 +909,7 @@ export type UiStoreState = {
   isAcceptRetrieveTelemetryDialogOpen: boolean;
   isAcceptTermsDialogOpen: boolean;
   isDictionaryManageDialogOpen: boolean;
+  isImportSoundLibraryDialogOpen: boolean;
   isMaximized: boolean;
   isPinned: boolean;
   isFullscreen: boolean;
@@ -994,6 +999,11 @@ type UiStoreTypes = {
   IS_DEFAULT_STYLE_SELECT_DIALOG_OPEN: {
     mutation: { isDefaultStyleSelectDialogOpen: boolean };
     action(payload: { isDefaultStyleSelectDialogOpen: boolean }): void;
+  };
+
+  IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN: {
+    mutation: { isImportSoundLibraryDialogOpen: boolean };
+    action(payload: { isImportSoundLibraryDialogOpen: boolean }): void;
   };
 
   HYDRATE_UI_STORE: {
