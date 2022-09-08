@@ -130,5 +130,45 @@ export const svModelStore: VoiceVoxStoreOptions<
         return;
       }
     ),
+    REGISTER_SV_MODEL: createUILockAction(
+      async ({ dispatch, state }, { svModelInfo }) => {
+        const engineId: string | undefined = state.engineIds[0]; // TODO: 複数エンジン対応
+        if (engineId === undefined)
+          throw new Error(`No such engine registered: index == 0`);
+
+        return dispatch("INSTANTIATE_ENGINE_CONNECTOR", {
+          engineId,
+        })
+          .then((instance) =>
+            instance.invoke("postSvModelSvModelPost")({
+              sVModelInfo: svModelInfo,
+            })
+          )
+          .then(() => {
+            return true;
+          })
+          .catch((e) => {
+            window.electron.logError(e);
+            return false;
+          });
+      }
+    ),
+    GET_SV_MODELS: createUILockAction(async ({ dispatch, state }) => {
+      const engineId: string | undefined = state.engineIds[0]; // TODO: 複数エンジン対応
+      if (engineId === undefined)
+        throw new Error(`No such engine registered: index == 0`);
+
+      return dispatch("INSTANTIATE_ENGINE_CONNECTOR", {
+        engineId,
+      })
+        .then((instance) => instance.invoke("getSvModelsSvModelsGet")({}))
+        .then((svModels) => {
+          return svModels;
+        })
+        .catch((e) => {
+          window.electron.logError(e);
+          return null;
+        });
+    }),
   },
 };
