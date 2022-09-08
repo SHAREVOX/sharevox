@@ -136,7 +136,7 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
       IS_ACCEPT_TERMS_DIALOG_OPEN(state, { isAcceptTermsDialogOpen }) {
         state.isAcceptTermsDialogOpen = isAcceptTermsDialogOpen;
       },
-      IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN(
+      IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN(
         state,
         {
           isImportSoundLibraryDialogOpen,
@@ -369,7 +369,7 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
           isAcceptTermsDialogOpen,
         });
       },
-      async IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN(
+      async IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN(
         { state, commit },
         {
           isImportSoundLibraryDialogOpen,
@@ -389,7 +389,7 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
           commit("UNLOCK_MENUBAR");
         }
 
-        commit("IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN", {
+        commit("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
           isImportSoundLibraryDialogOpen,
         });
       },

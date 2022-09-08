@@ -27,6 +27,7 @@ import { presetStoreState, presetStore } from "./preset";
 import { dictionaryStoreState, dictionaryStore } from "./dictionary";
 import { proxyStore, proxyStoreState } from "./proxy";
 import { DefaultStyleId } from "@/type/preload";
+import { svModelStore, svModelStoreState } from "./svModel";
 
 const isDevelopment = process.env.NODE_ENV == "development";
 
@@ -191,6 +192,7 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...indexStoreState,
     ...presetStoreState,
     ...dictionaryStoreState,
+    ...svModelStoreState,
     ...proxyStoreState,
   },
 
@@ -202,6 +204,7 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...settingStore.getters,
     ...presetStore.getters,
     ...dictionaryStore.getters,
+    ...svModelStore.getters,
     ...audioCommandStore.getters,
     ...indexStore.getters,
     ...proxyStore.getters,
@@ -216,6 +219,7 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...audioCommandStore.mutations,
     ...presetStore.mutations,
     ...dictionaryStore.mutations,
+    ...svModelStore.mutations,
     ...indexStore.mutations,
     ...proxyStore.mutations,
   },
@@ -229,6 +233,7 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...audioCommandStore.actions,
     ...presetStore.actions,
     ...dictionaryStore.actions,
+    ...svModelStore.actions,
     ...indexStore.actions,
     ...proxyStore.actions,
   },

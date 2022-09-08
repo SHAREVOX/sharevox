@@ -11,9 +11,7 @@ import semver from "semver";
 import { buildProjectFileName } from "./utility";
 
 import Ajv, { JTDDataType } from "ajv/dist/jtd";
-import { AccentPhrase, SVModelInfo } from "@/openapi";
-import JSZip from "jszip";
-import path from "path";
+import { AccentPhrase } from "@/openapi";
 
 const DEFAULT_SAMPLING_RATE = 24000;
 
@@ -339,83 +337,6 @@ export const projectStore: VoiceVoxStoreOptions<
           "SET_SAVED_LAST_COMMAND_UNIX_MILLISEC",
           context.getters.LAST_COMMAND_UNIX_MILLISEC
         );
-        return;
-      }
-    ),
-    IMPORT_SOUND_LIBRARY: createUILockAction(
-      async (
-        context,
-        { filePath, confirm }: { filePath?: string; confirm?: boolean }
-      ) => {
-        if (!filePath) {
-          // Select and load a ZIP File for sound library.
-          filePath = await window.electron.showImportFileDialog({
-            title: "サウンドライブラリ用ZIPファイルの選択",
-            filters: [{ name: "ZIP file", extensions: ["zip"] }],
-          });
-          if (!filePath) return;
-        }
-
-        const projectFileErrorMsg = `The ZIP file for a sound library "${filePath}" is a invalid file.`;
-
-        try {
-          // 音声ライブラリのZIPファイルをロード
-          const buf = await window.electron.readFile({ filePath });
-
-          // ZIPファイルの解凍と型変換
-          const jsZip = await JSZip.loadAsync(buf);
-          const svModelInfoObj = <SVModelInfo>{};
-          jsZip.forEach(async (relativePath, zipObject) => {
-            // WinやMacといった環境差異を吸収するためにpathライブラリを利用する
-            // ['3c888f14-b4b8-11ec-89e6-0242ac1c0002', 'voice_samples', '1758075148_003.wav']
-            // separatedPath[0]はspeaker_uuidになる
-            // separatedPath[1]がiconsの時はiconを想定してseparatedPath[2]を読む
-            // separatedPath[1]がvoice_samplesの時は音声サンプルを想定してseparatedPath[2]を読む
-            // それ以外はseparatedPath[1]を読む
-            //
-            // 想定ファイルたち
-            // - variance_model
-            // - embedder_model
-            // - decoder_model
-            // - speaker_infos
-            //   - portrait.png
-            //   - style_infos:
-            //     uuid: {
-            //       - icon: <id>.png
-            //       - voice_samples: [
-            //         <id>_00<n>.wav
-            //       ]
-            //     }
-            const separatedPath = relativePath.split(path.sep);
-            // base64エンコードする
-            // 似てるコードはプロジェクト内から探す
-            console.log(separatedPath);
-            console.log(zipObject);
-          });
-
-          console.log(svModelInfoObj);
-          console.log(confirm);
-        } catch (err) {
-          window.electron.logError(err);
-          const message = (() => {
-            if (typeof err === "string") return err;
-            if (!(err instanceof Error)) return "エラーが発生しました。";
-            if (err.message.startsWith(projectFileErrorMsg))
-              return "ファイルフォーマットが正しくありません。";
-            return err.message;
-          })();
-          await window.electron.showMessageDialog({
-            type: "error",
-            title: "エラー",
-            message,
-          });
-        }
-
-        // ロードした音声ファイルを表示するページを追加
-        // ライブラリの規約を表示する画面を追加
-        // キャンセルダイアログの表示
-        // インストールダイアログ
-        // インストールダイアログ表示ダイアログ
         return;
       }
     ),

@@ -6,7 +6,7 @@ import {
   StoreOptions,
 } from "./vuex";
 import { Patch } from "immer";
-import { AccentPhrase, AudioQuery, UserDictWord } from "@/openapi";
+import { AccentPhrase, AudioQuery, SVModelInfo, UserDictWord } from "@/openapi";
 import { createCommandMutationTree, PayloadRecipeTree } from "./command";
 import {
   CharacterInfo,
@@ -796,10 +796,6 @@ type ProjectStoreTypes = {
   SET_SAVED_LAST_COMMAND_UNIX_MILLISEC: {
     mutation: number | null;
   };
-
-  IMPORT_SOUND_LIBRARY: {
-    action(payload: { filePath?: string; confirm?: boolean }): void;
-  };
 };
 
 export type ProjectGetters = StoreType<ProjectStoreTypes, "getter">;
@@ -1001,7 +997,7 @@ type UiStoreTypes = {
     action(payload: { isDefaultStyleSelectDialogOpen: boolean }): void;
   };
 
-  IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN: {
+  IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN: {
     mutation: { isImportSoundLibraryDialogOpen: boolean };
     action(payload: { isImportSoundLibraryDialogOpen: boolean }): void;
   };
@@ -1158,6 +1154,27 @@ export type DictionaryMutations = StoreType<DictionaryStoreTypes, "mutation">;
 export type DictionaryActions = StoreType<DictionaryStoreTypes, "action">;
 
 /*
+ * SVModel Store Types
+ */
+
+export type SVModelStoreState = {
+  importedSvModel?: SVModelInfo;
+};
+
+type SVModelStoreTypes = {
+  IMPORT_SV_MODEL_INFO: {
+    action(payload: { filePath?: string; confirm?: boolean }): void;
+  };
+  SET_SV_MODEL_INFO: {
+    mutation: { svModelInfo?: SVModelInfo };
+  };
+};
+
+export type SVModelGetters = StoreType<SVModelStoreTypes, "getter">;
+export type SVModelMutations = StoreType<SVModelStoreTypes, "mutation">;
+export type SVModelActions = StoreType<SVModelStoreTypes, "action">;
+
+/*
  * Setting Store Types
  */
 
@@ -1200,6 +1217,7 @@ export type State = AudioStoreState &
   UiStoreState &
   PresetStoreState &
   DictionaryStoreState &
+  SVModelStoreState &
   ProxyStoreState;
 
 type AllStoreTypes = AudioStoreTypes &
@@ -1211,6 +1229,7 @@ type AllStoreTypes = AudioStoreTypes &
   UiStoreTypes &
   PresetStoreTypes &
   DictionaryStoreTypes &
+  SVModelStoreTypes &
   ProxyStoreTypes;
 
 export type AllGetters = StoreType<AllStoreTypes, "getter">;

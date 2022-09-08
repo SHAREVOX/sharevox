@@ -200,7 +200,7 @@ export default defineComponent({
       store.dispatch("IS_DEFAULT_STYLE_SELECT_DIALOG_OPEN", {
         isDefaultStyleSelectDialogOpen: false,
       });
-      store.dispatch("IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN", {
+      store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
         isImportSoundLibraryDialogOpen: false,
       });
     };
@@ -212,15 +212,9 @@ export default defineComponent({
     };
 
     const openImportSoundLibraryDialog = () => {
-      store.dispatch("IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN", {
+      store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
         isImportSoundLibraryDialogOpen: true,
       });
-    };
-
-    const importSoundLibrary = () => {
-      if (!uiLocked.value) {
-        store.dispatch("IMPORT_SOUND_LIBRARY", {});
-      }
     };
 
     const menudata = ref<MenuItemData[]>([
@@ -308,18 +302,6 @@ export default defineComponent({
             label: "再起動",
             onClick: () => {
               store.dispatch("RESTART_ENGINE_ALL");
-            },
-          },
-          {
-            type: "button",
-            label: "音声ライブラリインストール",
-            onClick: () => {
-              importSoundLibrary();
-              if (store.state.isImportSoundLibraryDialogOpen) closeAllDialog();
-              else {
-                closeAllDialog();
-                openImportSoundLibraryDialog();
-              }
             },
           },
         ],

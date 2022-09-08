@@ -642,7 +642,7 @@ export default defineComponent({
     const isImportSoundLibraryDialogOpenComputed = computed({
       get: () => store.state.isImportSoundLibraryDialogOpen,
       set: (val) =>
-        store.dispatch("IS_IMPORT_SOUND_LIBRARY_DIALOG_OPEN", {
+        store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
           isImportSoundLibraryDialogOpen: val,
         }),
     });
@@ -653,17 +653,8 @@ export default defineComponent({
       if (!event || event.dataTransfer.files.length === 0) return;
       const file = event.dataTransfer.files[0];
       switch (path.extname(file.name)) {
-        case ".zip":
-          $q.dialog({
-            title: "ZIPファイルがインポートされました",
-            message: "ZIPがインポートされました！",
-            ok: {
-              label: "閉じる",
-              flat: true,
-              textColor: "display",
-            },
-          });
-          store.dispatch("IMPORT_SOUND_LIBRARY", {
+        case ".svlib":
+          store.dispatch("IMPORT_SV_MODEL_INFO", {
             filePath: file.path,
             confirm: true,
           });
@@ -678,7 +669,7 @@ export default defineComponent({
           $q.dialog({
             title: "対応していないファイルです",
             message:
-              "ZIPファイル (.zip) とテキストファイル (.txt) とSHAREVOXプロジェクトファイル (.svproj) に対応しています。",
+              "svlibファイル (.svlib) とテキストファイル (.txt) とSHAREVOXプロジェクトファイル (.svproj) に対応しています。",
             ok: {
               label: "閉じる",
               flat: true,
