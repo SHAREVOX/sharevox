@@ -49,7 +49,7 @@ export interface SVModelApiInterface {
     getSvModelsSvModelsGet(initOverrides?: RequestInit): Promise<Array<string>>;
 
     /**
-     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
      * @summary Post Sv Model
      * @param {SVModelInfo} sVModelInfo 
      * @param {*} [options] Override http request option.
@@ -59,7 +59,7 @@ export interface SVModelApiInterface {
     postSvModelSvModelPostRaw(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<runtime.ApiResponse<any>>;
 
     /**
-     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
      * Post Sv Model
      */
     postSvModelSvModelPost(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<any>;
@@ -98,7 +98,7 @@ export class SVModelApi extends runtime.BaseAPI implements SVModelApiInterface {
     }
 
     /**
-     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
      * Post Sv Model
      */
     async postSvModelSvModelPostRaw(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<runtime.ApiResponse<any>> {
@@ -124,7 +124,7 @@ export class SVModelApi extends runtime.BaseAPI implements SVModelApiInterface {
     }
 
     /**
-     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
      * Post Sv Model
      */
     async postSvModelSvModelPost(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<any> {

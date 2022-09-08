@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    ModelConfig,
+    ModelConfigFromJSON,
+    ModelConfigFromJSONTyped,
+    ModelConfigToJSON,
     Speaker,
     SpeakerFromJSON,
     SpeakerFromJSONTyped,
@@ -62,6 +66,12 @@ export interface SVModelInfo {
     metas: Array<Speaker>;
     /**
      * 
+     * @type {ModelConfig}
+     * @memberof SVModelInfo
+     */
+    modelConfig: ModelConfig | null;
+    /**
+     * 
      * @type {{ [key: string]: SpeakerInfo; }}
      * @memberof SVModelInfo
      */
@@ -83,6 +93,7 @@ export function SVModelInfoFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'embedderModel': json['embedder_model'],
         'decoderModel': json['decoder_model'],
         'metas': ((json['metas'] as Array<any>).map(SpeakerFromJSON)),
+        'modelConfig': ModelConfigFromJSON(json['model_config']),
         'speakerInfos': (mapValues(json['speaker_infos'], SpeakerInfoFromJSON)),
     };
 }
@@ -101,6 +112,7 @@ export function SVModelInfoToJSON(value?: SVModelInfo | null): any {
         'embedder_model': value.embedderModel,
         'decoder_model': value.decoderModel,
         'metas': ((value.metas as Array<any>).map(SpeakerToJSON)),
+        'model_config': ModelConfigToJSON(value.modelConfig),
         'speaker_infos': (mapValues(value.speakerInfos, SpeakerInfoToJSON)),
     };
 }
