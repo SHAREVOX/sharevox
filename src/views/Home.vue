@@ -658,6 +658,7 @@ export default defineComponent({
             filePath: file.path,
             confirm: true,
           });
+          isImportSoundLibraryDialogOpenComputed.value = true;
           break;
         case ".txt":
           store.dispatch("COMMAND_IMPORT_FROM_FILE", { filePath: file.path });
