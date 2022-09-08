@@ -4,9 +4,11 @@ apis/index.ts
 index.ts
 models/AccentPhrase.ts
 models/AudioQuery.ts
+models/DownloadableLibrary.ts
 models/EngineManifest.ts
 models/HTTPValidationError.ts
 models/LicenseInfo.ts
+models/ModelConfig.ts
 models/Mora.ts
 models/ParseKanaBadRequest.ts
 models/Preset.ts

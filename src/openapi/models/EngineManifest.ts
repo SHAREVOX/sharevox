@@ -84,6 +84,18 @@ export interface EngineManifest {
      * @memberof EngineManifest
      */
     dependencyLicenses: Array<LicenseInfo>;
+    /**
+     * 
+     * @type {string}
+     * @memberof EngineManifest
+     */
+    downloadableLibrariesPath?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EngineManifest
+     */
+    downloadableLibrariesUrl?: string;
 }
 
 export function EngineManifestFromJSON(json: any): EngineManifest {
@@ -105,6 +117,8 @@ export function EngineManifestFromJSONTyped(json: any, ignoreDiscriminator: bool
         'termsOfService': json['terms_of_service'],
         'updateInfos': ((json['update_infos'] as Array<any>).map(UpdateInfoFromJSON)),
         'dependencyLicenses': ((json['dependency_licenses'] as Array<any>).map(LicenseInfoFromJSON)),
+        'downloadableLibrariesPath': !exists(json, 'downloadable_libraries_path') ? undefined : json['downloadable_libraries_path'],
+        'downloadableLibrariesUrl': !exists(json, 'downloadable_libraries_url') ? undefined : json['downloadable_libraries_url'],
     };
 }
 
@@ -126,6 +140,8 @@ export function EngineManifestToJSON(value?: EngineManifest | null): any {
         'terms_of_service': value.termsOfService,
         'update_infos': ((value.updateInfos as Array<any>).map(UpdateInfoToJSON)),
         'dependency_licenses': ((value.dependencyLicenses as Array<any>).map(LicenseInfoToJSON)),
+        'downloadable_libraries_path': value.downloadableLibrariesPath,
+        'downloadable_libraries_url': value.downloadableLibrariesUrl,
     };
 }
 
