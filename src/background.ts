@@ -994,10 +994,10 @@ ipcMainHandle("SHOW_ERROR_DIALOG", (_, { title, message }) => {
   });
 });
 
-ipcMainHandle("SHOW_IMPORT_FILE_DIALOG", (_, { title }) => {
+ipcMainHandle("SHOW_IMPORT_FILE_DIALOG", (_, { title, filters }) => {
   return dialog.showOpenDialogSync(win, {
     title,
-    filters: [{ name: "Text", extensions: ["txt"] }],
+    filters: filters,
     properties: ["openFile", "createDirectory"],
   })?.[0];
 });

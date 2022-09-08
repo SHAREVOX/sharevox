@@ -2193,6 +2193,7 @@ export const audioCommandStore: VoiceVoxStoreOptions<
         if (!filePath) {
           filePath = await window.electron.showImportFileDialog({
             title: "セリフ読み込み",
+            filters: [{ name: "Text", extensions: ["txt"] }],
           });
           if (!filePath) return;
         }

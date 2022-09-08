@@ -134,8 +134,8 @@ const api: Sandbox = {
     });
   },
 
-  showImportFileDialog: ({ title }) => {
-    return ipcRendererInvoke("SHOW_IMPORT_FILE_DIALOG", { title });
+  showImportFileDialog: ({ title, filters }) => {
+    return ipcRendererInvoke("SHOW_IMPORT_FILE_DIALOG", { title, filters });
   },
 
   writeFile: ({ filePath, buffer }) => {
