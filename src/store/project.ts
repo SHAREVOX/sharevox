@@ -349,13 +349,11 @@ export const projectStore: VoiceVoxStoreOptions<
       ) => {
         if (!filePath) {
           // Select and load a ZIP File for sound library.
-          const ret = await window.electron.showProjectLoadDialog({
+          filePath = await window.electron.showImportFileDialog({
             title: "サウンドライブラリ用ZIPファイルの選択",
+            filters: [{ name: "ZIP file", extensions: ["zip"] }],
           });
-          if (ret == undefined || ret?.length == 0) {
-            return;
-          }
-          filePath = ret[0];
+          if (!filePath) return;
         }
 
         const projectFileErrorMsg = `The ZIP file for a sound library "${filePath}" is a invalid file.`;

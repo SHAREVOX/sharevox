@@ -218,7 +218,9 @@ export default defineComponent({
     };
 
     const importSoundLibrary = () => {
-      store.dispatch("IMPORT_SOUND_LIBRARY", {});
+      if (!uiLocked.value) {
+        store.dispatch("IMPORT_SOUND_LIBRARY", {});
+      }
     };
 
     const menudata = ref<MenuItemData[]>([
