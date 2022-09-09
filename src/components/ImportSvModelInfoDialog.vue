@@ -366,6 +366,7 @@ export default defineComponent({
     });
 
     const cancelInstall = () => {
+      stop();
       $q.dialog({
         title: "インストールのキャンセル",
         message:
