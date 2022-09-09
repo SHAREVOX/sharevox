@@ -112,10 +112,7 @@
                   >
                     <div class="character-item-inner">
                       <img
-                        :src="
-                          speakerInfo[selectedStyleIndexes[speakerUuid] ?? 0]
-                            .icon
-                        "
+                        :src="selectedStyles[speakerUuid].icon"
                         class="style-icon"
                       />
                       <span class="text-subtitle1 q-ma-sm">{{
@@ -271,7 +268,7 @@ export default defineComponent({
         map[speakerUuid] = {
           id: apiFormatStyleInfo.id,
           styleName: metasStyleInfo.name,
-          icon: base64ToUrl(speakerInfo.portrait, "image/png"),
+          icon: base64ToUrl(apiFormatStyleInfo.icon, "image/png"),
           voiceSamples: apiFormatStyleInfo.voiceSamples.map((value) =>
             base64ToUrl(value, "audio/wav")
           ),
