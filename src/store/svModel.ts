@@ -177,7 +177,7 @@ export const svModelStore: VoiceVoxStoreOptions<
               let index = 0;
               let styleIndex = 0;
               switch (fileExt) {
-                case "wav":
+                case ".wav":
                   uuid = separatedPath[2];
                   if (svModelInfoObj.speakerInfos[uuid] === undefined) {
                     throw Error("Invalid library format (speaker info)");
@@ -206,7 +206,7 @@ export const svModelStore: VoiceVoxStoreOptions<
                     styleIndex
                   ].voiceSamples[index - 1] = data;
                   break;
-                case "png":
+                case ".png":
                   uuid = separatedPath[2];
                   if (svModelInfoObj.speakerInfos[uuid] === undefined) {
                     throw Error("Invalid library format (speaker info)");
@@ -229,7 +229,7 @@ export const svModelStore: VoiceVoxStoreOptions<
                     ].icon = data;
                   }
                   break;
-                case "md":
+                case ".md":
                   if (filenameWithoutExt === "policy") {
                     uuid = separatedPath[2];
                     if (svModelInfoObj.speakerInfos[uuid] === undefined) {
