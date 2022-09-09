@@ -54,14 +54,18 @@
         </q-toolbar>
       </q-header>
       <q-page-container>
-        <div v-if="installingModel" class="installing-model">
-          <div>
-            <q-spinner color="primary" size="2.5rem" />
-            <div class="q-mt-xs">インストール中・・・</div>
+        <q-page>
+          <div v-if="!loadedModel || installingModel" class="loading">
+            <div>
+              <q-spinner color="primary" size="2.5rem" />
+              <div class="q-mt-xs">
+                {{
+                  installingModel ? "インストール中・・・" : "読み込み中・・・"
+                }}
+              </div>
+            </div>
           </div>
-        </div>
-        <q-page v-if="newCharacters !== undefined">
-          <q-tab-panels v-model="pageIndex">
+          <q-tab-panels v-model="pageIndex" v-if="loadedModel">
             <!-- 試聴・モデル確認画面 -->
             <q-tab-panel :name="0">
               <q-drawer
@@ -228,6 +232,9 @@ export default defineComponent({
     const $q = useQuasar();
 
     const pageIndex = ref(0);
+    const loadedModel = computed(
+      () => Object.keys(newCharacters.value).length > 0
+    );
     const installingModel = ref(false);
 
     const base64ToUrl = function (base64: string, type: string) {
@@ -278,9 +285,9 @@ export default defineComponent({
     const selectCharacter = (speakerUuid: string) => {
       selectedCharacter.value = speakerUuid;
     };
-    // 選択ダイアログが開かれたときに初期値を求める
+    // モデルがロードできたときに初期値を求める
     watch(
-      () => props.modelValue,
+      () => loadedModel.value,
       (newValue, oldValue) => {
         if (!oldValue && newValue && newCharacters.value) {
           const speakerUuids = Object.keys(newCharacters.value);
@@ -459,6 +466,7 @@ export default defineComponent({
     return {
       modelValueComputed,
       pageIndex,
+      loadedModel,
       installingModel,
       newCharacters,
       newCharacterMetas,
@@ -574,7 +582,7 @@ export default defineComponent({
   }
 }
 
-.installing-model {
+.loading {
   background-color: rgba(colors.$display-rgb, 0.15);
   position: absolute;
   inset: 0;
