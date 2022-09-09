@@ -49,35 +49,37 @@ export const svModelStore: VoiceVoxStoreOptions<
 
           const svModelInfoObj = <SVModelInfo>{};
 
-          zip.forEach(async (relativePath, zipObject) => {
-            // ignore environment differences such as Win/Mac/Linux
-            const separatedPath = relativePath.split(path.sep);
-            if (separatedPath.length == 0) {
-              console.error(`${filePath} should be invalid`);
-              return;
-            }
+          const zipProcesses = Object.keys(zip.files).map(
+            async (relativePath) => {
+              const zipObject = zip.files[relativePath];
+              // ignore environment differences such as Win/Mac/Linux
+              const separatedPath = relativePath.split(path.sep);
+              if (separatedPath.length == 0) {
+                console.error(`${filePath} should be invalid`);
+                return;
+              }
 
-            const fileExt: string = path.extname(relativePath);
-            let convertType: JSZip.OutputType;
-            switch (fileExt) {
-              case ".png":
-              case ".onnx":
-              case ".wav":
-                convertType = "base64";
-                break;
-              default:
-                convertType = "string";
-                break;
-            }
+              const fileExt: string = path.extname(relativePath);
+              let convertType: JSZip.OutputType;
+              switch (fileExt) {
+                case ".png":
+                case ".onnx":
+                case ".wav":
+                  convertType = "base64";
+                  break;
+                default:
+                  convertType = "string";
+                  break;
+              }
 
-            // e.g.) ['svlib', 'model', 'test', 'decoder_model.onnx']
-            // separatedPath[0]                   => should be svlib
-            // separatedPath[1]                   => should be speaker_uuid
-            // separatedPath[2] is icons          => should be icon, so read separatedPath[3]
-            // separatedPath[2] is voice_samples  => should be wav data, so read separatedPath[3]
-            // others                             => read separatedPath[1](should be file name)
-            const filename = path.basename(relativePath);
-            zipObject.async(convertType).then((data) => {
+              // e.g.) ['svlib', 'model', 'test', 'decoder_model.onnx']
+              // separatedPath[0]                   => should be svlib
+              // separatedPath[1]                   => should be speaker_uuid
+              // separatedPath[2] is icons          => should be icon, so read separatedPath[3]
+              // separatedPath[2] is voice_samples  => should be wav data, so read separatedPath[3]
+              // others                             => read separatedPath[1](should be file name)
+              const filename = path.basename(relativePath);
+              const data = await zipObject.async(convertType);
               if (
                 separatedPath.length > 2 &&
                 separatedPath[1] === "speaker_info" &&
@@ -109,26 +111,28 @@ export const svModelStore: VoiceVoxStoreOptions<
                   console.log(separatedPath);
                   break;
               }
-            });
 
-            // given files
-            // - variance_model
-            // - embedder_model
-            // - decoder_model
-            // - speaker_infos
-            //   - portrait.png
-            //   - style_infos:
-            //     uuid: {
-            //       - icon: <id>.png
-            //       - voice_samples: [
-            //         <id>_00<n>.wav
-            //       ]
-            //     }
+              // given files
+              // - variance_model
+              // - embedder_model
+              // - decoder_model
+              // - speaker_infos
+              //   - portrait.png
+              //   - style_infos:
+              //     uuid: {
+              //       - icon: <id>.png
+              //       - voice_samples: [
+              //         <id>_00<n>.wav
+              //       ]
+              //     }
 
-            // console.log(separatedPath);
-            // console.log(zipObject);
-            // TODO: read data from zipObject
-          });
+              // console.log(separatedPath);
+              // console.log(zipObject);
+              // TODO: read data from zipObject
+            }
+          );
+          await Promise.all(zipProcesses);
+
           console.log(svModelInfoObj);
           console.log(confirm);
 
