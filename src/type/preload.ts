@@ -60,9 +60,9 @@ export interface Sandbox {
     buttons: string[];
     cancelId?: number;
   }): Promise<number>;
-  showImportFileDialog(obj: {
+  showImportFileDialog(obj: { title: string }): Promise<string | undefined>;
+  showImportSvModelInfoDialog(obj: {
     title: string;
-    filters: Electron.FileFilter[];
   }): Promise<string | undefined>;
   writeFile(obj: {
     filePath: string;

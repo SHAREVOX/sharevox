@@ -994,11 +994,19 @@ ipcMainHandle("SHOW_ERROR_DIALOG", (_, { title, message }) => {
   });
 });
 
-ipcMainHandle("SHOW_IMPORT_FILE_DIALOG", (_, { title, filters }) => {
+ipcMainHandle("SHOW_IMPORT_FILE_DIALOG", (_, { title }) => {
   return dialog.showOpenDialogSync(win, {
     title,
-    filters: filters,
+    filters: [{ name: "Text", extensions: ["txt"] }],
     properties: ["openFile", "createDirectory"],
+  })?.[0];
+});
+
+ipcMainHandle("SHOW_IMPORT_SV_MODEL_INFO_DIALOG", async (_, { title }) => {
+  return dialog.showOpenDialogSync(win, {
+    title,
+    filters: [{ name: "SHAREVOX Voice Library", extensions: ["svlib"] }],
+    properties: ["openFile"],
   })?.[0];
 });
 

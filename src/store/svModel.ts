@@ -1,4 +1,4 @@
-import { Speaker, SpeakerInfo } from "@/openapi/models";
+import { ModelConfigFromJSON, SpeakerFromJSON } from "@/openapi/models";
 import { SVModelInfo } from "@/openapi/models/SVModelInfo";
 import {
   SVModelGetters,
@@ -33,10 +33,8 @@ export const svModelStore: VoiceVoxStoreOptions<
       ) => {
         if (!filePath) {
           // Select and load a ZIP File for sound library.
-          filePath = await window.electron.showImportFileDialog({
+          filePath = await window.electron.showImportSvModelInfoDialog({
             title: "サウンドライブラリ用ファイル(.svlib)の選択",
-            // filters: [{ name: ".svlib file", extensions: ["svlib"] }],
-            filters: [{ name: ".svlib file", extensions: ["svlib"] }],
           });
           if (!filePath) return;
         }
@@ -49,15 +47,7 @@ export const svModelStore: VoiceVoxStoreOptions<
 
           const svModelInfoObj = <SVModelInfo>{};
 
-          zip.forEach(async (relativePath, zipObject) => {
-            // ignore environment differences such as Win/Mac/Linux
-            const separatedPath = relativePath.split(path.sep);
-            if (separatedPath.length == 0) {
-              console.error(`${filePath} should be invalid`);
-              return;
-            }
-
-            const fileExt: string = path.extname(relativePath);
+          const convertTypeSwitcher = (fileExt: string) => {
             let convertType: JSZip.OutputType;
             switch (fileExt) {
               case ".png":
@@ -69,68 +59,198 @@ export const svModelStore: VoiceVoxStoreOptions<
                 convertType = "string";
                 break;
             }
+            return convertType;
+          };
 
-            // e.g.) ['svlib', 'model', 'test', 'decoder_model.onnx']
-            // separatedPath[0]                   => should be svlib
-            // separatedPath[1]                   => should be speaker_uuid
-            // separatedPath[2] is icons          => should be icon, so read separatedPath[3]
-            // separatedPath[2] is voice_samples  => should be wav data, so read separatedPath[3]
-            // others                             => read separatedPath[1](should be file name)
-            const filename = path.basename(relativePath);
-            zipObject.async(convertType).then((data) => {
-              if (
-                separatedPath.length > 2 &&
-                separatedPath[1] === "speaker_info" &&
-                separatedPath[2] !== ""
-              ) {
-                svModelInfoObj.speakerInfos = {};
-                svModelInfoObj.speakerInfos[separatedPath[2]] = <SpeakerInfo>{};
+          // metas無しにspeaker_infoを構築するのが難しいので先にモデルの情報だけ処理する
+          const modelProcesses = Object.keys(zip.files).map(
+            async (relativePath) => {
+              const zipObject = zip.files[relativePath];
+              // ignore environment differences such as Win/Mac/Linux
+              const separatedPath = relativePath.split(path.sep);
+              if (separatedPath.length == 0) {
+                console.error(`${filePath} should be invalid`);
+                return;
               }
 
-              switch (filename) {
-                case "embedder_model.onnx":
-                  svModelInfoObj.uuid = separatedPath[2];
-                  svModelInfoObj.embedderModel = data;
+              const fileExt: string = path.extname(relativePath);
+              const convertType = convertTypeSwitcher(fileExt);
+
+              // e.g.) ['svlib', 'test', 'decoder_model.onnx']
+              // separatedPath[0]                   => should be svlib
+              // separatedPath[1]                   => should be speaker_uuid
+              // separatedPath[2] is icons          => should be icon, so read separatedPath[3]
+              // separatedPath[2] is voice_samples  => should be wav data, so read separatedPath[3]
+              // others                             => read separatedPath[1](should be file name)
+              const filename = path.basename(relativePath);
+              // 必要なものだけ読み込んで処理速度を上げる
+              if (filename.endsWith(".onnx") || filename.endsWith(".json")) {
+                const data = await zipObject.async(convertType);
+
+                let metas: Record<string, unknown>[];
+                const convertedMetas = [];
+                switch (filename) {
+                  case "embedder_model.onnx":
+                    svModelInfoObj.uuid = separatedPath[1];
+                    svModelInfoObj.embedderModel = data;
+                    break;
+                  case "decoder_model.onnx":
+                    svModelInfoObj.decoderModel = data;
+                    break;
+                  case "variance_model.onnx":
+                    svModelInfoObj.varianceModel = data;
+                    break;
+                  case "metas.json":
+                    metas = JSON.parse(data);
+                    // snake to camel case
+                    for (const meta of metas) {
+                      convertedMetas.push(SpeakerFromJSON(meta));
+                    }
+                    svModelInfoObj.metas = convertedMetas;
+                    break;
+                  case "model_config.json":
+                    // snake to camel case
+                    svModelInfoObj.modelConfig = ModelConfigFromJSON(
+                      JSON.parse(data)
+                    );
+                    break;
+                  default:
+                    console.log("unknown file:", filename);
+                    break;
+                }
+              }
+            }
+          );
+          await Promise.all(modelProcesses);
+
+          if (
+            !svModelInfoObj.modelConfig ||
+            !svModelInfoObj.metas ||
+            !svModelInfoObj.varianceModel ||
+            !svModelInfoObj.embedderModel ||
+            !svModelInfoObj.decoderModel
+          )
+            throw Error("Invalid library format (not found model files)");
+          const styleIdOffset = svModelInfoObj.modelConfig.startId;
+
+          // プレースホルダを作る
+          svModelInfoObj.speakerInfos = {};
+          for (const meta of svModelInfoObj.metas) {
+            svModelInfoObj.speakerInfos[meta.speakerUuid] = {
+              policy: "",
+              portrait: "",
+              styleInfos: meta.styles.map((value) => {
+                return {
+                  id: value.id + styleIdOffset,
+                  icon: "",
+                  voiceSamples: ["", "", ""],
+                };
+              }),
+            };
+          }
+
+          const speakerInfoProcesses = Object.keys(zip.files).map(
+            async (relativePath) => {
+              const zipObject = zip.files[relativePath];
+              // ignore environment differences such as Win/Mac/Linux
+              const separatedPath = relativePath.split(path.sep);
+              if (separatedPath.length == 0) {
+                console.error(`${filePath} should be invalid`);
+                return;
+              }
+
+              const fileExt: string = path.extname(relativePath);
+              const convertType = convertTypeSwitcher(fileExt);
+
+              const filename = path.basename(relativePath);
+              if (filename.endsWith(".onnx") || filename.endsWith(".json")) {
+                return;
+              }
+              const data = await zipObject.async(convertType);
+
+              // TODO: もう少し可読性を何とかしたい
+              const filenameWithoutExt = filename.split(".")[0];
+              let uuid = "";
+              let dirname = "";
+              let idAndIndex: string[] = [];
+              let id = 0;
+              let index = 0;
+              let styleIndex = 0;
+              switch (fileExt) {
+                case "wav":
+                  uuid = separatedPath[2];
+                  if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                    throw Error("Invalid library format (speaker info)");
+                  }
+                  dirname = separatedPath[3];
+                  if (dirname !== "voice_samples") {
+                    throw Error("Invalid library format (voice sample folder)");
+                  }
+                  idAndIndex = filenameWithoutExt.split("_");
+                  if (idAndIndex.length !== 2) {
+                    throw Error("Invalid library format (voice sample name)");
+                  }
+                  id = parseInt(idAndIndex[0]);
+                  index = parseInt(idAndIndex[1]);
+                  if (isNaN(id) || isNaN(index)) {
+                    throw Error("Invalid library format (voice sample name)");
+                  }
+                  styleIndex = svModelInfoObj.speakerInfos[
+                    uuid
+                  ].styleInfos.findIndex((value) => value.id === id);
+                  if (styleIndex === -1) {
+                    throw Error("Invalid library format (voice sample name)");
+                  }
+                  // indexは1始まりなので1引く
+                  svModelInfoObj.speakerInfos[uuid].styleInfos[
+                    styleIndex
+                  ].voiceSamples[index - 1] = data;
                   break;
-                case "decoder_model.onnx":
-                  svModelInfoObj.decoderModel = data;
+                case "png":
+                  uuid = separatedPath[2];
+                  if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                    throw Error("Invalid library format (speaker info)");
+                  }
+                  if (filename === "portrait.png") {
+                    svModelInfoObj.speakerInfos[uuid].portrait = data;
+                  } else {
+                    const id = parseInt(filenameWithoutExt);
+                    if (isNaN(id)) {
+                      throw Error("Invalid library format (style icon name)");
+                    }
+                    const styleIndex = svModelInfoObj.speakerInfos[
+                      uuid
+                    ].styleInfos.findIndex((value) => value.id === id);
+                    if (styleIndex === -1) {
+                      throw Error("Invalid library format (icon name)");
+                    }
+                    svModelInfoObj.speakerInfos[uuid].styleInfos[
+                      styleIndex
+                    ].icon = data;
+                  }
                   break;
-                case "variance_model.onnx":
-                  svModelInfoObj.varianceModel = data;
-                  break;
-                case "metas.json":
-                  svModelInfoObj.metas = JSON.parse(data);
-                  break;
-                case "model_config.json":
-                  svModelInfoObj.modelConfig = JSON.parse(data);
-                  break;
+                case "md":
+                  if (filenameWithoutExt === "policy") {
+                    uuid = separatedPath[2];
+                    if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                      throw Error("Invalid library format (speaker info)");
+                    }
+                    svModelInfoObj.speakerInfos[uuid].policy = data;
+                    break;
+                  } else {
+                    console.log("unknown file:", filename);
+                    break;
+                  }
                 default:
-                  // TODO: speakerInfoを埋める
-                  console.log(separatedPath);
+                  console.log("unknown file:", filename);
                   break;
               }
-            });
+            }
+          );
 
-            // given files
-            // - variance_model
-            // - embedder_model
-            // - decoder_model
-            // - speaker_infos
-            //   - portrait.png
-            //   - style_infos:
-            //     uuid: {
-            //       - icon: <id>.png
-            //       - voice_samples: [
-            //         <id>_00<n>.wav
-            //       ]
-            //     }
-
-            // console.log(separatedPath);
-            // console.log(zipObject);
-            // TODO: read data from zipObject
+          await Promise.all(speakerInfoProcesses).catch((e) => {
+            throw Error(e);
           });
-          console.log(svModelInfoObj);
-          console.log(confirm);
 
           // setするとき
           context.commit("SET_SV_MODEL_INFO", { svModelInfo: svModelInfoObj });
