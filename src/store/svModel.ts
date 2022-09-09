@@ -281,6 +281,9 @@ export const svModelStore: VoiceVoxStoreOptions<
         return;
       }
     ),
+    RESET_SV_MODEL_INFO: ({ commit }) => {
+      commit("SET_SV_MODEL_INFO", { svModelInfo: undefined });
+    },
     REGISTER_SV_MODEL: createUILockAction(async ({ dispatch, state }) => {
       const engineId: string | undefined = state.engineIds[0]; // TODO: 複数エンジン対応
       if (engineId === undefined)
@@ -297,7 +300,8 @@ export const svModelStore: VoiceVoxStoreOptions<
             sVModelInfo,
           })
         )
-        .then(() => {
+        .then(async () => {
+          await dispatch("RESET_SV_MODEL_INFO");
           return true;
         })
         .catch((e) => {

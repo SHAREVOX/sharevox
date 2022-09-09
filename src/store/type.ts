@@ -1168,6 +1168,9 @@ type SVModelStoreTypes = {
   SET_SV_MODEL_INFO: {
     mutation: { svModelInfo?: SVModelInfo };
   };
+  RESET_SV_MODEL_INFO: {
+    action(): void;
+  };
   REGISTER_SV_MODEL: {
     action(): boolean;
   };
