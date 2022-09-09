@@ -1163,7 +1163,7 @@ export type SVModelStoreState = {
 
 type SVModelStoreTypes = {
   IMPORT_SV_MODEL_INFO: {
-    action(payload: { filePath?: string; confirm?: boolean }): void;
+    action(payload: { filePath: string; confirm?: boolean }): void;
   };
   SET_SV_MODEL_INFO: {
     mutation: { svModelInfo?: SVModelInfo };
