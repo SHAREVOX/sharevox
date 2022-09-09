@@ -6,7 +6,7 @@ import {
   StoreOptions,
 } from "./vuex";
 import { Patch } from "immer";
-import { AccentPhrase, AudioQuery, UserDictWord } from "@/openapi";
+import { AccentPhrase, AudioQuery, SVModelInfo, UserDictWord } from "@/openapi";
 import { createCommandMutationTree, PayloadRecipeTree } from "./command";
 import {
   CharacterInfo,
@@ -905,6 +905,7 @@ export type UiStoreState = {
   isAcceptRetrieveTelemetryDialogOpen: boolean;
   isAcceptTermsDialogOpen: boolean;
   isDictionaryManageDialogOpen: boolean;
+  isImportSvModelInfoDialogOpen: boolean;
   isMaximized: boolean;
   isPinned: boolean;
   isFullscreen: boolean;
@@ -994,6 +995,11 @@ type UiStoreTypes = {
   IS_DEFAULT_STYLE_SELECT_DIALOG_OPEN: {
     mutation: { isDefaultStyleSelectDialogOpen: boolean };
     action(payload: { isDefaultStyleSelectDialogOpen: boolean }): void;
+  };
+
+  IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN: {
+    mutation: { isImportSvModelInfoDialogOpen: boolean };
+    action(payload: { isImportSvModelInfoDialogOpen: boolean }): void;
   };
 
   HYDRATE_UI_STORE: {
@@ -1148,6 +1154,36 @@ export type DictionaryMutations = StoreType<DictionaryStoreTypes, "mutation">;
 export type DictionaryActions = StoreType<DictionaryStoreTypes, "action">;
 
 /*
+ * SVModel Store Types
+ */
+
+export type SVModelStoreState = {
+  importedSvModel?: SVModelInfo;
+};
+
+type SVModelStoreTypes = {
+  IMPORT_SV_MODEL_INFO: {
+    action(payload: { filePath: string; confirm?: boolean }): void;
+  };
+  SET_SV_MODEL_INFO: {
+    mutation: { svModelInfo?: SVModelInfo };
+  };
+  RESET_SV_MODEL_INFO: {
+    action(): void;
+  };
+  REGISTER_SV_MODEL: {
+    action(): boolean;
+  };
+  GET_SV_MODELS: {
+    action(): string[] | null;
+  };
+};
+
+export type SVModelGetters = StoreType<SVModelStoreTypes, "getter">;
+export type SVModelMutations = StoreType<SVModelStoreTypes, "mutation">;
+export type SVModelActions = StoreType<SVModelStoreTypes, "action">;
+
+/*
  * Setting Store Types
  */
 
@@ -1190,6 +1226,7 @@ export type State = AudioStoreState &
   UiStoreState &
   PresetStoreState &
   DictionaryStoreState &
+  SVModelStoreState &
   ProxyStoreState;
 
 type AllStoreTypes = AudioStoreTypes &
@@ -1201,6 +1238,7 @@ type AllStoreTypes = AudioStoreTypes &
   UiStoreTypes &
   PresetStoreTypes &
   DictionaryStoreTypes &
+  SVModelStoreTypes &
   ProxyStoreTypes;
 
 export type AllGetters = StoreType<AllStoreTypes, "getter">;

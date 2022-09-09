@@ -61,6 +61,9 @@ export interface Sandbox {
     cancelId?: number;
   }): Promise<number>;
   showImportFileDialog(obj: { title: string }): Promise<string | undefined>;
+  showImportSvModelInfoDialog(obj: {
+    title: string;
+  }): Promise<string | undefined>;
   writeFile(obj: {
     filePath: string;
     buffer: ArrayBuffer;
@@ -80,7 +83,6 @@ export interface Sandbox {
   engineInfos(): Promise<EngineInfo[]>;
   restartEngineAll(): Promise<void>;
   restartEngine(engineId: string): Promise<void>;
-  savingSetting(newData?: SavingSetting): Promise<SavingSetting>;
   hotkeySettings(newData?: HotkeySetting): Promise<HotkeySetting[]>;
   checkFileExists(file: string): Promise<boolean>;
   changePinWindow(): void;

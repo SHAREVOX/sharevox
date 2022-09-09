@@ -11,6 +11,7 @@ import { presetStore } from "@/store/preset";
 import { assert } from "chai";
 import { proxyStore } from "@/store/proxy";
 import { dictionaryStore } from "@/store/dictionary";
+import { svModelStore } from "@/store/svModel";
 const isDevelopment = process.env.NODE_ENV == "development";
 // TODO: Swap external files to Mock
 
@@ -44,6 +45,7 @@ describe("store/vuex.js test", () => {
         isDictionaryManageDialogOpen: false,
         isAcceptRetrieveTelemetryDialogOpen: false,
         isAcceptTermsDialogOpen: false,
+        isImportSvModelInfoDialogOpen: false,
         isMaximized: false,
         savedLastCommandUnixMillisec: null,
         savingSetting: {
@@ -104,6 +106,7 @@ describe("store/vuex.js test", () => {
         ...presetStore.getters,
         ...proxyStore.getters,
         ...dictionaryStore.getters,
+        ...svModelStore.getters,
       },
       mutations: {
         ...uiStore.mutations,
@@ -116,6 +119,7 @@ describe("store/vuex.js test", () => {
         ...presetStore.mutations,
         ...proxyStore.mutations,
         ...dictionaryStore.mutations,
+        ...svModelStore.mutations,
       },
       actions: {
         ...uiStore.actions,
@@ -128,6 +132,7 @@ describe("store/vuex.js test", () => {
         ...presetStore.actions,
         ...proxyStore.actions,
         ...dictionaryStore.actions,
+        ...svModelStore.actions,
       },
       plugins: isDevelopment ? [createLogger()] : undefined,
       strict: process.env.NODE_ENV !== "production",

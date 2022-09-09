@@ -1002,6 +1002,14 @@ ipcMainHandle("SHOW_IMPORT_FILE_DIALOG", (_, { title }) => {
   })?.[0];
 });
 
+ipcMainHandle("SHOW_IMPORT_SV_MODEL_INFO_DIALOG", async (_, { title }) => {
+  return dialog.showOpenDialogSync(win, {
+    title,
+    filters: [{ name: "SHAREVOX Voice Library", extensions: ["svlib"] }],
+    properties: ["openFile"],
+  })?.[0];
+});
+
 ipcMainHandle("OPEN_TEXT_EDIT_CONTEXT_MENU", () => {
   textEditContextMenu.popup({ window: win });
 });

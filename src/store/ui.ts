@@ -42,6 +42,7 @@ export const uiStoreState: UiStoreState = {
   isAcceptRetrieveTelemetryDialogOpen: false,
   isAcceptTermsDialogOpen: false,
   isDictionaryManageDialogOpen: false,
+  isImportSvModelInfoDialogOpen: false,
   isMaximized: false,
   isPinned: false,
   isFullscreen: false,
@@ -134,6 +135,14 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
       },
       IS_ACCEPT_TERMS_DIALOG_OPEN(state, { isAcceptTermsDialogOpen }) {
         state.isAcceptTermsDialogOpen = isAcceptTermsDialogOpen;
+      },
+      IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN(
+        state,
+        {
+          isImportSvModelInfoDialogOpen,
+        }: { isImportSvModelInfoDialogOpen: boolean }
+      ) {
+        state.isImportSvModelInfoDialogOpen = isImportSvModelInfoDialogOpen;
       },
       SET_USE_GPU(state, { useGpu }: { useGpu: boolean }) {
         state.useGpu = useGpu;
@@ -358,6 +367,29 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
 
         commit("IS_ACCEPT_TERMS_DIALOG_OPEN", {
           isAcceptTermsDialogOpen,
+        });
+      },
+      async IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN(
+        { state, commit },
+        {
+          isImportSvModelInfoDialogOpen,
+        }: { isImportSvModelInfoDialogOpen: boolean }
+      ) {
+        if (
+          state.isImportSvModelInfoDialogOpen === isImportSvModelInfoDialogOpen
+        )
+          return;
+
+        if (isImportSvModelInfoDialogOpen) {
+          commit("LOCK_UI");
+          commit("LOCK_MENUBAR");
+        } else {
+          commit("UNLOCK_UI");
+          commit("UNLOCK_MENUBAR");
+        }
+
+        commit("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
+          isImportSvModelInfoDialogOpen,
         });
       },
       async HYDRATE_UI_STORE({ commit }) {
