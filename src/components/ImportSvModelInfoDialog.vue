@@ -230,6 +230,14 @@ export default defineComponent({
       () => Object.keys(newCharacters.value).length > 0
     );
     const installingModel = ref(false);
+    watch(
+      () => modelValueComputed.value,
+      (newValue, oldValue) => {
+        if (!oldValue && newValue && newCharacters.value) {
+          pageIndex.value = 0;
+        }
+      }
+    );
 
     const base64ToUrl = function (base64: string, type: string) {
       const buffer = Buffer.from(base64, "base64");
