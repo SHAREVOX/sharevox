@@ -444,7 +444,9 @@ export default defineComponent({
       } else {
         $q.dialog({
           title: "音声ライブラリのインストールに失敗しました",
-          message: "エンジンの再起動をお試しください。",
+          message:
+            "既に音声ライブラリがインストールされていませんか？<br />そうでない場合、エンジンの再起動をお試しください。",
+          html: true,
           persistent: true,
           focus: "cancel",
           ok: {
