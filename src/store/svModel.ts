@@ -1,3 +1,4 @@
+import { Speaker, SpeakerInfo } from "@/openapi/models";
 import { SVModelInfo } from "@/openapi/models/SVModelInfo";
 import {
   SVModelGetters,
@@ -45,15 +46,11 @@ export const svModelStore: VoiceVoxStoreOptions<
         try {
           const buf = await window.electron.readFile({ filePath });
           const zip = await JSZip.loadAsync(buf);
+
           const svModelInfoObj = <SVModelInfo>{};
 
           zip.forEach(async (relativePath, zipObject) => {
             // ignore environment differences such as Win/Mac/Linux
-            // e.g.) ['3c888f14-b4b8-11ec-89e6-0242ac1c0002', 'voice_samples', '1758075148_003.wav']
-            // separatedPath[0]                   => should be speaker_uuid
-            // separatedPath[1] is icons          => should be icon, so read separatedPath[2]
-            // separatedPath[1] is voice_samples  => should be wav data, so read separatedPath[2]
-            // others                             => read separatedPath[1](should be file name)
             const separatedPath = relativePath.split(path.sep);
             if (separatedPath.length == 0) {
               console.error(`${filePath} should be invalid`);
@@ -73,10 +70,45 @@ export const svModelStore: VoiceVoxStoreOptions<
                 break;
             }
 
-            const speaker_uuid: string = separatedPath[0];
+            // e.g.) ['svlib', 'model', 'test', 'decoder_model.onnx']
+            // separatedPath[0]                   => should be svlib
+            // separatedPath[1]                   => should be speaker_uuid
+            // separatedPath[2] is icons          => should be icon, so read separatedPath[3]
+            // separatedPath[2] is voice_samples  => should be wav data, so read separatedPath[3]
+            // others                             => read separatedPath[1](should be file name)
+            const filename = path.basename(relativePath);
             zipObject.async(convertType).then((data) => {
-              console.log(separatedPath);
-              console.log(data);
+              if (
+                separatedPath.length > 2 &&
+                separatedPath[1] === "speaker_info" &&
+                separatedPath[2] !== ""
+              ) {
+                svModelInfoObj.speakerInfos = {};
+                svModelInfoObj.speakerInfos[separatedPath[2]] = <SpeakerInfo>{};
+              }
+
+              switch (filename) {
+                case "embedder_model.onnx":
+                  svModelInfoObj.uuid = separatedPath[2];
+                  svModelInfoObj.embedderModel = data;
+                  break;
+                case "decoder_model.onnx":
+                  svModelInfoObj.decoderModel = data;
+                  break;
+                case "variance_model.onnx":
+                  svModelInfoObj.varianceModel = data;
+                  break;
+                case "metas.json":
+                  svModelInfoObj.metas = JSON.parse(data);
+                  break;
+                case "model_config.json":
+                  svModelInfoObj.modelConfig = JSON.parse(data);
+                  break;
+                default:
+                  // TODO: speakerInfoを埋める
+                  console.log(separatedPath);
+                  break;
+              }
             });
 
             // given files
@@ -97,9 +129,8 @@ export const svModelStore: VoiceVoxStoreOptions<
             // console.log(zipObject);
             // TODO: read data from zipObject
           });
-
-          // console.log(svModelInfoObj);
-          // console.log(confirm);
+          console.log(svModelInfoObj);
+          console.log(confirm);
 
           // setするとき
           context.commit("SET_SV_MODEL_INFO", { svModelInfo: svModelInfoObj });
