@@ -83,7 +83,7 @@ export type IpcIHData = {
   };
 
   SHOW_IMPORT_FILE_DIALOG: {
-    args: [obj: { title: string; filters: Electron.FileFilter[] }];
+    args: [obj: { title: string }];
     return?: string;
   };
 
