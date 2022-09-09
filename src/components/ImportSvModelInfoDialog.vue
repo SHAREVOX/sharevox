@@ -187,8 +187,8 @@
               </div>
             </q-tab-panel>
             <!-- 利用規約画面 -->
-            <q-tab-panel :name="1" class="q-pa-xl markdown-body">
-              <div class="markdown overflow-auto" v-html="policyHtml" />
+            <q-tab-panel :name="1" class="markdown-body overflow-auto">
+              <div class="markdown q-pa-xl" v-html="policyHtml" />
             </q-tab-panel>
           </q-tab-panels>
         </q-page>
@@ -516,7 +516,7 @@ export default defineComponent({
   );
 
   > :deep(.scroll) {
-    overflow-y: scroll;
+    overflow-y: hidden;
     .q-tab-panel {
       padding: 5px 16px;
     }
