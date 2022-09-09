@@ -115,6 +115,7 @@ export const svModelStore: VoiceVoxStoreOptions<
                     );
                     break;
                   default:
+                    console.log("unknown file:", filename);
                     break;
                 }
               }
