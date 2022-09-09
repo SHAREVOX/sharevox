@@ -36,6 +36,9 @@ import {
     Preset,
     PresetFromJSON,
     PresetToJSON,
+    SVModelInfo,
+    SVModelInfoFromJSON,
+    SVModelInfoToJSON,
     Speaker,
     SpeakerFromJSON,
     SpeakerToJSON,
@@ -131,6 +134,10 @@ export interface MultiSynthesisMultiSynthesisPostRequest {
     speaker: number;
     audioQuery: Array<AudioQuery>;
     coreVersion?: string;
+}
+
+export interface PostSvModelSvModelPostRequest {
+    sVModelInfo: SVModelInfo;
 }
 
 export interface RewriteUserDictWordUserDictWordWordUuidPutRequest {
@@ -360,6 +367,20 @@ export interface DefaultApiInterface {
     getPresetsPresetsGet(initOverrides?: RequestInit): Promise<Array<Preset>>;
 
     /**
+     * 
+     * @summary Get Sv Models
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApiInterface
+     */
+    getSvModelsSvModelsGetRaw(initOverrides?: RequestInit): Promise<runtime.ApiResponse<Array<string>>>;
+
+    /**
+     * Get Sv Models
+     */
+    getSvModelsSvModelsGet(initOverrides?: RequestInit): Promise<Array<string>>;
+
+    /**
      * ユーザー辞書に登録されている単語の一覧を返します。 単語の表層形(surface)は正規化済みの物を返します。  Returns ------- Dict[str, UserDictWord]     単語のUUIDとその詳細
      * @summary Get User Dict Words
      * @param {*} [options] Override http request option.
@@ -492,6 +513,22 @@ export interface DefaultApiInterface {
      * 複数まとめて音声合成する
      */
     multiSynthesisMultiSynthesisPost(requestParameters: MultiSynthesisMultiSynthesisPostRequest, initOverrides?: RequestInit): Promise<Blob>;
+
+    /**
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * @summary Post Sv Model
+     * @param {SVModelInfo} sVModelInfo 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApiInterface
+     */
+    postSvModelSvModelPostRaw(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * Post Sv Model
+     */
+    postSvModelSvModelPost(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<void>;
 
     /**
      * ユーザー辞書に登録されている言葉を更新します。  Parameters ---------- surface : str     言葉の表層形 pronunciation: str     言葉の発音（カタカナ） accent_type: int     アクセント型（音が下がる場所を指す） word_uuid: str     更新する言葉のUUID word_type: WordTypes, optional     PROPER_NOUN（固有名詞）、COMMON_NOUN（普通名詞）、VERB（動詞）、ADJECTIVE（形容詞）、SUFFIX（語尾）のいずれか priority: int, optional     単語の優先度（0から10までの整数）     数字が大きいほど優先度が高くなる     1から9までの値を指定することを推奨
@@ -1048,6 +1085,32 @@ export class DefaultApi extends runtime.BaseAPI implements DefaultApiInterface {
     }
 
     /**
+     * Get Sv Models
+     */
+    async getSvModelsSvModelsGetRaw(initOverrides?: RequestInit): Promise<runtime.ApiResponse<Array<string>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/sv_models`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get Sv Models
+     */
+    async getSvModelsSvModelsGet(initOverrides?: RequestInit): Promise<Array<string>> {
+        const response = await this.getSvModelsSvModelsGetRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * ユーザー辞書に登録されている単語の一覧を返します。 単語の表層形(surface)は正規化済みの物を返します。  Returns ------- Dict[str, UserDictWord]     単語のUUIDとその詳細
      * Get User Dict Words
      */
@@ -1374,6 +1437,40 @@ export class DefaultApi extends runtime.BaseAPI implements DefaultApiInterface {
     async multiSynthesisMultiSynthesisPost(requestParameters: MultiSynthesisMultiSynthesisPostRequest, initOverrides?: RequestInit): Promise<Blob> {
         const response = await this.multiSynthesisMultiSynthesisPostRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * Post Sv Model
+     */
+    async postSvModelSvModelPostRaw(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.sVModelInfo === null || requestParameters.sVModelInfo === undefined) {
+            throw new runtime.RequiredError('sVModelInfo','Required parameter requestParameters.sVModelInfo was null or undefined when calling postSvModelSvModelPost.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/sv_model`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SVModelInfoToJSON(requestParameters.sVModelInfo),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * svモデルを登録します。  Parameters ---------- uuid: str     モデル固有のUUID variance_model: str     variance_model.onnxをbase64エンコードした文字列 embedder_model: str     embedder_model.onnxをbase64エンコードした文字列 decoder_model: str     decoder_model.onnxをbase64エンコードした文字列 metas: List[Speakers]     モデルのメタ情報     metas.jsonをlistにしたもの model_config: ModelConfig     model_config.jsonをdictにした機械学習に利用するための情報 speaker_infos: Dict[str, SpeakerInfo]     keyをspeakerInfoのUUIDとした複数のspeaker情報
+     * Post Sv Model
+     */
+    async postSvModelSvModelPost(requestParameters: PostSvModelSvModelPostRequest, initOverrides?: RequestInit): Promise<void> {
+        await this.postSvModelSvModelPostRaw(requestParameters, initOverrides);
     }
 
     /**
