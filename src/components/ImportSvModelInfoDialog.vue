@@ -87,8 +87,8 @@
                   />
                 </div>
               </q-drawer>
+              <div class="text-h6 sample-voice-title">サンプルボイス一覧</div>
               <div class="character-items-container">
-                <span class="text-h6 q-py-md">サンプルボイス一覧</span>
                 <div>
                   <q-item
                     v-for="(speakerInfo, speakerUuid) in newCharacters"
@@ -517,10 +517,15 @@ export default defineComponent({
     }
   }
 
+  $voice-sample-title-height: 30px;
+  .voice-sample-title-height {
+    height: $voice-sample-title-height;
+  }
+
   .character-items-container {
     display: grid;
     align-items: center;
-    height: 100%;
+    height: calc(100% - #{$voice-sample-title-height});
 
     > div {
       $character-item-size: 215px;
