@@ -61,6 +61,9 @@ export interface Sandbox {
     cancelId?: number;
   }): Promise<number>;
   showImportFileDialog(obj: { title: string }): Promise<string | undefined>;
+  showImportSvModelInfoDialog(obj: {
+    title: string;
+  }): Promise<string | undefined>;
   writeFile(obj: {
     filePath: string;
     buffer: ArrayBuffer;

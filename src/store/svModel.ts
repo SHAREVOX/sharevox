@@ -33,10 +33,8 @@ export const svModelStore: VoiceVoxStoreOptions<
       ) => {
         if (!filePath) {
           // Select and load a ZIP File for sound library.
-          filePath = await window.electron.showImportFileDialog({
+          filePath = await window.electron.showImportSvModelInfoDialog({
             title: "サウンドライブラリ用ファイル(.svlib)の選択",
-            // filters: [{ name: ".svlib file", extensions: ["svlib"] }],
-            filters: [{ name: ".svlib file", extensions: ["svlib"] }],
           });
           if (!filePath) return;
         }

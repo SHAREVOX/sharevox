@@ -87,6 +87,11 @@ export type IpcIHData = {
     return?: string;
   };
 
+  SHOW_IMPORT_SV_MODEL_INFO_DIALOG: {
+    args: [obj: { title: string }];
+    return?: string;
+  };
+
   SHOW_PROJECT_SAVE_DIALOG: {
     args: [obj: { title: string; defaultPath?: string }];
     return?: string;
