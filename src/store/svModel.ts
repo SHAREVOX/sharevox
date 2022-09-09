@@ -124,13 +124,11 @@ export const svModelStore: VoiceVoxStoreOptions<
           await Promise.all(modelProcesses);
 
           if (
-            svModelInfoObj.modelConfig === undefined ||
-            // なぜかnullが含まれているので、ついでにnullの可能性も排除
-            svModelInfoObj.modelConfig === null ||
-            svModelInfoObj.metas === undefined ||
-            svModelInfoObj.varianceModel === undefined ||
-            svModelInfoObj.embedderModel === undefined ||
-            svModelInfoObj.decoderModel === undefined
+            !svModelInfoObj.modelConfig ||
+            !svModelInfoObj.metas ||
+            !svModelInfoObj.varianceModel ||
+            !svModelInfoObj.embedderModel ||
+            !svModelInfoObj.decoderModel
           )
             throw Error("Invalid library format (not found model files)");
           const styleIdOffset = svModelInfoObj.modelConfig.startId;
