@@ -201,7 +201,7 @@ export default defineComponent({
         isDefaultStyleSelectDialogOpen: false,
       });
       store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
-        isImportSoundLibraryDialogOpen: false,
+        isImportSvModelInfoDialogOpen: false,
       });
     };
 
@@ -211,9 +211,9 @@ export default defineComponent({
       });
     };
 
-    const openImportSoundLibraryDialog = () => {
+    const openImportSvModelInfoialog = () => {
       store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
-        isImportSoundLibraryDialogOpen: true,
+        isImportSvModelInfoDialogOpen: true,
       });
     };
 
@@ -307,12 +307,17 @@ export default defineComponent({
           {
             type: "button",
             label: "音声ライブラリインストール",
-            onClick: () => {
-              store.dispatch("IMPORT_SV_MODEL_INFO", {});
-              closeAllDialog();
-              if (!store.state.isImportSoundLibraryDialogOpen) {
-                openImportSoundLibraryDialog();
+            onClick: async () => {
+              // Select and load a ZIP File for sound library.
+              const filePath =
+                await window.electron.showImportSvModelInfoDialog({
+                  title: "音声ライブラリファイル(.svlib)の選択",
+                });
+              if (!filePath) return;
+              if (!store.state.isImportSvModelInfoDialogOpen) {
+                openImportSvModelInfoialog();
               }
+              await store.dispatch("IMPORT_SV_MODEL_INFO", { filePath });
             },
           },
         ],

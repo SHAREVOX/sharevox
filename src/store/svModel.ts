@@ -29,16 +29,8 @@ export const svModelStore: VoiceVoxStoreOptions<
     IMPORT_SV_MODEL_INFO: createUILockAction(
       async (
         context,
-        { filePath, confirm }: { filePath?: string; confirm?: boolean }
+        { filePath, confirm }: { filePath: string; confirm?: boolean }
       ) => {
-        if (!filePath) {
-          // Select and load a ZIP File for sound library.
-          filePath = await window.electron.showImportSvModelInfoDialog({
-            title: "サウンドライブラリ用ファイル(.svlib)の選択",
-          });
-          if (!filePath) return;
-        }
-
         const projectFileErrorMsg = `The sound library file "${filePath}" is a invalid file.`;
 
         try {
@@ -177,7 +169,7 @@ export const svModelStore: VoiceVoxStoreOptions<
               let index = 0;
               let styleIndex = 0;
               switch (fileExt) {
-                case "wav":
+                case ".wav":
                   uuid = separatedPath[2];
                   if (svModelInfoObj.speakerInfos[uuid] === undefined) {
                     throw Error("Invalid library format (speaker info)");
@@ -206,7 +198,7 @@ export const svModelStore: VoiceVoxStoreOptions<
                     styleIndex
                   ].voiceSamples[index - 1] = data;
                   break;
-                case "png":
+                case ".png":
                   uuid = separatedPath[2];
                   if (svModelInfoObj.speakerInfos[uuid] === undefined) {
                     throw Error("Invalid library format (speaker info)");
@@ -229,7 +221,7 @@ export const svModelStore: VoiceVoxStoreOptions<
                     ].icon = data;
                   }
                   break;
-                case "md":
+                case ".md":
                   if (filenameWithoutExt === "policy") {
                     uuid = separatedPath[2];
                     if (svModelInfoObj.speakerInfos[uuid] === undefined) {
@@ -281,6 +273,9 @@ export const svModelStore: VoiceVoxStoreOptions<
         return;
       }
     ),
+    RESET_SV_MODEL_INFO: ({ commit }) => {
+      commit("SET_SV_MODEL_INFO", { svModelInfo: undefined });
+    },
     REGISTER_SV_MODEL: createUILockAction(async ({ dispatch, state }) => {
       const engineId: string | undefined = state.engineIds[0]; // TODO: 複数エンジン対応
       if (engineId === undefined)
@@ -297,7 +292,8 @@ export const svModelStore: VoiceVoxStoreOptions<
             sVModelInfo,
           })
         )
-        .then(() => {
+        .then(async () => {
+          await dispatch("RESET_SV_MODEL_INFO");
           return true;
         })
         .catch((e) => {

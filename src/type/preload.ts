@@ -83,7 +83,6 @@ export interface Sandbox {
   engineInfos(): Promise<EngineInfo[]>;
   restartEngineAll(): Promise<void>;
   restartEngine(engineId: string): Promise<void>;
-  savingSetting(newData?: SavingSetting): Promise<SavingSetting>;
   hotkeySettings(newData?: HotkeySetting): Promise<HotkeySetting[]>;
   checkFileExists(file: string): Promise<boolean>;
   changePinWindow(): void;

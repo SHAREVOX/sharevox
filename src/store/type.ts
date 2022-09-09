@@ -905,7 +905,7 @@ export type UiStoreState = {
   isAcceptRetrieveTelemetryDialogOpen: boolean;
   isAcceptTermsDialogOpen: boolean;
   isDictionaryManageDialogOpen: boolean;
-  isImportSoundLibraryDialogOpen: boolean;
+  isImportSvModelInfoDialogOpen: boolean;
   isMaximized: boolean;
   isPinned: boolean;
   isFullscreen: boolean;
@@ -998,8 +998,8 @@ type UiStoreTypes = {
   };
 
   IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN: {
-    mutation: { isImportSoundLibraryDialogOpen: boolean };
-    action(payload: { isImportSoundLibraryDialogOpen: boolean }): void;
+    mutation: { isImportSvModelInfoDialogOpen: boolean };
+    action(payload: { isImportSvModelInfoDialogOpen: boolean }): void;
   };
 
   HYDRATE_UI_STORE: {
@@ -1163,10 +1163,13 @@ export type SVModelStoreState = {
 
 type SVModelStoreTypes = {
   IMPORT_SV_MODEL_INFO: {
-    action(payload: { filePath?: string; confirm?: boolean }): void;
+    action(payload: { filePath: string; confirm?: boolean }): void;
   };
   SET_SV_MODEL_INFO: {
     mutation: { svModelInfo?: SVModelInfo };
+  };
+  RESET_SV_MODEL_INFO: {
+    action(): void;
   };
   REGISTER_SV_MODEL: {
     action(): boolean;

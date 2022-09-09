@@ -42,7 +42,7 @@ export const uiStoreState: UiStoreState = {
   isAcceptRetrieveTelemetryDialogOpen: false,
   isAcceptTermsDialogOpen: false,
   isDictionaryManageDialogOpen: false,
-  isImportSoundLibraryDialogOpen: false,
+  isImportSvModelInfoDialogOpen: false,
   isMaximized: false,
   isPinned: false,
   isFullscreen: false,
@@ -139,10 +139,10 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
       IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN(
         state,
         {
-          isImportSoundLibraryDialogOpen,
-        }: { isImportSoundLibraryDialogOpen: boolean }
+          isImportSvModelInfoDialogOpen,
+        }: { isImportSvModelInfoDialogOpen: boolean }
       ) {
-        state.isImportSoundLibraryDialogOpen = isImportSoundLibraryDialogOpen;
+        state.isImportSvModelInfoDialogOpen = isImportSvModelInfoDialogOpen;
       },
       SET_USE_GPU(state, { useGpu }: { useGpu: boolean }) {
         state.useGpu = useGpu;
@@ -372,16 +372,15 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
       async IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN(
         { state, commit },
         {
-          isImportSoundLibraryDialogOpen,
-        }: { isImportSoundLibraryDialogOpen: boolean }
+          isImportSvModelInfoDialogOpen,
+        }: { isImportSvModelInfoDialogOpen: boolean }
       ) {
         if (
-          state.isImportSoundLibraryDialogOpen ===
-          isImportSoundLibraryDialogOpen
+          state.isImportSvModelInfoDialogOpen === isImportSvModelInfoDialogOpen
         )
           return;
 
-        if (isImportSoundLibraryDialogOpen) {
+        if (isImportSvModelInfoDialogOpen) {
           commit("LOCK_UI");
           commit("LOCK_MENUBAR");
         } else {
@@ -390,7 +389,7 @@ export const uiStore: VoiceVoxStoreOptions<UiGetters, UiActions, UiMutations> =
         }
 
         commit("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
-          isImportSoundLibraryDialogOpen,
+          isImportSvModelInfoDialogOpen,
         });
       },
       async HYDRATE_UI_STORE({ commit }) {
