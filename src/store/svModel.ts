@@ -170,6 +170,7 @@ export const svModelStore: VoiceVoxStoreOptions<
               }
               const data = await zipObject.async(convertType);
 
+              // TODO: もう少し拡張性と可読性を何とかしたい
               const filenameWithoutExt = filename.split(".")[0];
               if (filename.endsWith(".wav")) {
                 const uuid = separatedPath[2];
