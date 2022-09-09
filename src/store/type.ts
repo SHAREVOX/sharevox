@@ -1169,7 +1169,7 @@ type SVModelStoreTypes = {
     mutation: { svModelInfo?: SVModelInfo };
   };
   REGISTER_SV_MODEL: {
-    action(payload: { svModelInfo: SVModelInfo }): boolean;
+    action(): boolean;
   };
   GET_SV_MODELS: {
     action(): string[] | null;
