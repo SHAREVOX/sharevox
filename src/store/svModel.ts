@@ -168,64 +168,82 @@ export const svModelStore: VoiceVoxStoreOptions<
               }
               const data = await zipObject.async(convertType);
 
-              // TODO: もう少し拡張性と可読性を何とかしたい
+              // TODO: もう少し可読性を何とかしたい
               const filenameWithoutExt = filename.split(".")[0];
-              if (filename.endsWith(".wav")) {
-                const uuid = separatedPath[2];
-                if (svModelInfoObj.speakerInfos[uuid] === undefined) {
-                  throw Error("Invalid library format (speaker info)");
-                }
-                const dirname = separatedPath[3];
-                if (dirname !== "voice_samples") {
-                  throw Error("Invalid library format (voice sample folder)");
-                }
-                const idAndIndex = filenameWithoutExt.split("_");
-                if (idAndIndex.length !== 2) {
-                  throw Error("Invalid library format (voice sample name)");
-                }
-                const id = parseInt(idAndIndex[0]);
-                const index = parseInt(idAndIndex[1]);
-                if (isNaN(id) || isNaN(index)) {
-                  throw Error("Invalid library format (voice sample name)");
-                }
-                const styleIndex = svModelInfoObj.speakerInfos[
-                  uuid
-                ].styleInfos.findIndex((value) => value.id === id);
-                if (styleIndex === -1) {
-                  throw Error("Invalid library format (voice sample name)");
-                }
-                // indexは1始まりなので1引く
-                svModelInfoObj.speakerInfos[uuid].styleInfos[
-                  styleIndex
-                ].voiceSamples[index - 1] = data;
-              } else if (filename.endsWith(".png")) {
-                const uuid = separatedPath[2];
-                if (svModelInfoObj.speakerInfos[uuid] === undefined) {
-                  throw Error("Invalid library format (speaker info)");
-                }
-                if (filename === "portrait.png") {
-                  svModelInfoObj.speakerInfos[uuid].portrait = data;
-                } else {
-                  const id = parseInt(filenameWithoutExt);
-                  if (isNaN(id)) {
-                    throw Error("Invalid library format (style icon name)");
+              let uuid = "";
+              let dirname = "";
+              let idAndIndex: string[] = [];
+              let id = 0;
+              let index = 0;
+              let styleIndex = 0;
+              switch (fileExt) {
+                case "wav":
+                  uuid = separatedPath[2];
+                  if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                    throw Error("Invalid library format (speaker info)");
                   }
-                  const styleIndex = svModelInfoObj.speakerInfos[
+                  dirname = separatedPath[3];
+                  if (dirname !== "voice_samples") {
+                    throw Error("Invalid library format (voice sample folder)");
+                  }
+                  idAndIndex = filenameWithoutExt.split("_");
+                  if (idAndIndex.length !== 2) {
+                    throw Error("Invalid library format (voice sample name)");
+                  }
+                  id = parseInt(idAndIndex[0]);
+                  index = parseInt(idAndIndex[1]);
+                  if (isNaN(id) || isNaN(index)) {
+                    throw Error("Invalid library format (voice sample name)");
+                  }
+                  styleIndex = svModelInfoObj.speakerInfos[
                     uuid
                   ].styleInfos.findIndex((value) => value.id === id);
                   if (styleIndex === -1) {
-                    throw Error("Invalid library format (icon name)");
+                    throw Error("Invalid library format (voice sample name)");
                   }
+                  // indexは1始まりなので1引く
                   svModelInfoObj.speakerInfos[uuid].styleInfos[
                     styleIndex
-                  ].icon = data;
-                }
-              } else if (filename === "policy.md") {
-                const uuid = separatedPath[2];
-                if (svModelInfoObj.speakerInfos[uuid] === undefined) {
-                  throw Error("Invalid library format (speaker info)");
-                }
-                svModelInfoObj.speakerInfos[uuid].policy = data;
+                  ].voiceSamples[index - 1] = data;
+                  break;
+                case "png":
+                  uuid = separatedPath[2];
+                  if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                    throw Error("Invalid library format (speaker info)");
+                  }
+                  if (filename === "portrait.png") {
+                    svModelInfoObj.speakerInfos[uuid].portrait = data;
+                  } else {
+                    const id = parseInt(filenameWithoutExt);
+                    if (isNaN(id)) {
+                      throw Error("Invalid library format (style icon name)");
+                    }
+                    const styleIndex = svModelInfoObj.speakerInfos[
+                      uuid
+                    ].styleInfos.findIndex((value) => value.id === id);
+                    if (styleIndex === -1) {
+                      throw Error("Invalid library format (icon name)");
+                    }
+                    svModelInfoObj.speakerInfos[uuid].styleInfos[
+                      styleIndex
+                    ].icon = data;
+                  }
+                  break;
+                case "md":
+                  if (filenameWithoutExt === "policy") {
+                    uuid = separatedPath[2];
+                    if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                      throw Error("Invalid library format (speaker info)");
+                    }
+                    svModelInfoObj.speakerInfos[uuid].policy = data;
+                    break;
+                  } else {
+                    console.log("unknown file:", filename);
+                    break;
+                  }
+                default:
+                  console.log("unknown file:", filename);
+                  break;
               }
             }
           );
