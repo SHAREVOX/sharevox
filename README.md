@@ -1,4 +1,4 @@
-# SHAREVOX 
+# SHAREVOX
 
 [SHAREVOX](https://sharevox.app/) のエディターです。
 
