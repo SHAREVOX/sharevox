@@ -258,8 +258,10 @@ export default defineComponent({
           selectedStyleIndexes.value[speakerUuid];
         const apiFormatStyleInfo =
           speakerInfo.styleInfos[selectedStyleIndex ?? 0];
+        const modelConfig = store.state.importedSvModel?.modelConfig;
+        if (modelConfig === null || modelConfig === undefined) return undefined;
         const metasStyleInfo = newCharacterMetas.value[speakerUuid].styles.find(
-          (value) => value.id === apiFormatStyleInfo.id
+          (value) => value.id + modelConfig.startId === apiFormatStyleInfo.id
         );
         if (metasStyleInfo === undefined) return undefined;
         map[speakerUuid] = {
