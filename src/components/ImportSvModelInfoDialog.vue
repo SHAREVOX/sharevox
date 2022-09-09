@@ -202,7 +202,7 @@ import { defineComponent, computed, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { Speaker, StyleInfo } from "@/openapi";
 import { useQuasar } from "quasar";
-import {useMarkdownIt} from "@/plugins/markdownItPlugin";
+import { useMarkdownIt } from "@/plugins/markdownItPlugin";
 
 type CustomStyleInfo = StyleInfo & { styleName?: string };
 
