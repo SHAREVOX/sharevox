@@ -1,4 +1,4 @@
-import { Speaker, SpeakerInfo } from "@/openapi/models";
+import { ModelConfigFromJSON, SpeakerFromJSON } from "@/openapi/models";
 import { SVModelInfo } from "@/openapi/models/SVModelInfo";
 import {
   SVModelGetters,
@@ -49,7 +49,23 @@ export const svModelStore: VoiceVoxStoreOptions<
 
           const svModelInfoObj = <SVModelInfo>{};
 
-          const zipProcesses = Object.keys(zip.files).map(
+          const convertTypeSwitcher = (fileExt: string) => {
+            let convertType: JSZip.OutputType;
+            switch (fileExt) {
+              case ".png":
+              case ".onnx":
+              case ".wav":
+                convertType = "base64";
+                break;
+              default:
+                convertType = "string";
+                break;
+            }
+            return convertType;
+          };
+
+          // metas無しにspeaker_infoを構築するのが難しいので先にモデルの情報だけ処理する
+          const modelProcesses = Object.keys(zip.files).map(
             async (relativePath) => {
               const zipObject = zip.files[relativePath];
               // ignore environment differences such as Win/Mac/Linux
@@ -60,56 +76,49 @@ export const svModelStore: VoiceVoxStoreOptions<
               }
 
               const fileExt: string = path.extname(relativePath);
-              let convertType: JSZip.OutputType;
-              switch (fileExt) {
-                case ".png":
-                case ".onnx":
-                case ".wav":
-                  convertType = "base64";
-                  break;
-                default:
-                  convertType = "string";
-                  break;
-              }
+              const convertType = convertTypeSwitcher(fileExt);
 
-              // e.g.) ['svlib', 'model', 'test', 'decoder_model.onnx']
+              // e.g.) ['svlib', 'test', 'decoder_model.onnx']
               // separatedPath[0]                   => should be svlib
               // separatedPath[1]                   => should be speaker_uuid
               // separatedPath[2] is icons          => should be icon, so read separatedPath[3]
               // separatedPath[2] is voice_samples  => should be wav data, so read separatedPath[3]
               // others                             => read separatedPath[1](should be file name)
               const filename = path.basename(relativePath);
-              const data = await zipObject.async(convertType);
-              if (
-                separatedPath.length > 2 &&
-                separatedPath[1] === "speaker_info" &&
-                separatedPath[2] !== ""
-              ) {
-                svModelInfoObj.speakerInfos = {};
-                svModelInfoObj.speakerInfos[separatedPath[2]] = <SpeakerInfo>{};
-              }
+              // 必要なものだけ読み込んで処理速度を上げる
+              if (filename.endsWith(".onnx") || filename.endsWith(".json")) {
+                const data = await zipObject.async(convertType);
 
-              switch (filename) {
-                case "embedder_model.onnx":
-                  svModelInfoObj.uuid = separatedPath[2];
-                  svModelInfoObj.embedderModel = data;
-                  break;
-                case "decoder_model.onnx":
-                  svModelInfoObj.decoderModel = data;
-                  break;
-                case "variance_model.onnx":
-                  svModelInfoObj.varianceModel = data;
-                  break;
-                case "metas.json":
-                  svModelInfoObj.metas = JSON.parse(data);
-                  break;
-                case "model_config.json":
-                  svModelInfoObj.modelConfig = JSON.parse(data);
-                  break;
-                default:
-                  // TODO: speakerInfoを埋める
-                  console.log(separatedPath);
-                  break;
+                let metas: Record<string, unknown>[];
+                const convertedMetas = [];
+                switch (filename) {
+                  case "embedder_model.onnx":
+                    svModelInfoObj.uuid = separatedPath[1];
+                    svModelInfoObj.embedderModel = data;
+                    break;
+                  case "decoder_model.onnx":
+                    svModelInfoObj.decoderModel = data;
+                    break;
+                  case "variance_model.onnx":
+                    svModelInfoObj.varianceModel = data;
+                    break;
+                  case "metas.json":
+                    metas = JSON.parse(data);
+                    // snake to camel case
+                    for (const meta of metas) {
+                      convertedMetas.push(SpeakerFromJSON(meta));
+                    }
+                    svModelInfoObj.metas = convertedMetas;
+                    break;
+                  case "model_config.json":
+                    // snake to camel case
+                    svModelInfoObj.modelConfig = ModelConfigFromJSON(
+                      JSON.parse(data)
+                    );
+                    break;
+                  default:
+                    break;
+                }
               }
 
               // given files
@@ -131,10 +140,123 @@ export const svModelStore: VoiceVoxStoreOptions<
               // TODO: read data from zipObject
             }
           );
-          await Promise.all(zipProcesses);
+          await Promise.all(modelProcesses);
 
-          console.log(svModelInfoObj);
-          console.log(confirm);
+          if (
+            svModelInfoObj.modelConfig === undefined ||
+            // なぜかnullが含まれているので、ついでにnullの可能性も排除
+            svModelInfoObj.modelConfig === null ||
+            svModelInfoObj.metas === undefined ||
+            svModelInfoObj.varianceModel === undefined ||
+            svModelInfoObj.embedderModel === undefined ||
+            svModelInfoObj.decoderModel === undefined
+          )
+            throw Error("Invalid library format (not found model files)");
+          const styleIdOffset = svModelInfoObj.modelConfig.startId;
+
+          // プレースホルダを作る
+          svModelInfoObj.speakerInfos = {};
+          for (const meta of svModelInfoObj.metas) {
+            svModelInfoObj.speakerInfos[meta.speakerUuid] = {
+              policy: "",
+              portrait: "",
+              styleInfos: meta.styles.map((value) => {
+                return {
+                  id: value.id,
+                  icon: "",
+                  voiceSamples: ["", "", ""],
+                };
+              }),
+            };
+          }
+
+          const speakerInfoProcesses = Object.keys(zip.files).map(
+            async (relativePath) => {
+              const zipObject = zip.files[relativePath];
+              // ignore environment differences such as Win/Mac/Linux
+              const separatedPath = relativePath.split(path.sep);
+              if (separatedPath.length == 0) {
+                console.error(`${filePath} should be invalid`);
+                return;
+              }
+
+              const fileExt: string = path.extname(relativePath);
+              const convertType = convertTypeSwitcher(fileExt);
+
+              const filename = path.basename(relativePath);
+              if (filename.endsWith(".onnx") || filename.endsWith(".json")) {
+                return;
+              }
+              const data = await zipObject.async(convertType);
+
+              const filenameWithoutExt = filename.split(".")[0];
+              if (filename.endsWith(".wav")) {
+                const uuid = separatedPath[2];
+                if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                  throw Error("Invalid library format (speaker info)");
+                }
+                const dirname = separatedPath[3];
+                if (dirname !== "voice_samples") {
+                  throw Error("Invalid library format (voice sample folder)");
+                }
+                const idAndIndex = filenameWithoutExt.split("_");
+                if (idAndIndex.length !== 2) {
+                  throw Error("Invalid library format (voice sample name)");
+                }
+                const id = parseInt(idAndIndex[0]);
+                const index = parseInt(idAndIndex[1]);
+                if (isNaN(id) || isNaN(index)) {
+                  throw Error("Invalid library format (voice sample name)");
+                }
+                const styleIndex = svModelInfoObj.speakerInfos[
+                  uuid
+                ].styleInfos.findIndex(
+                  (value) => value.id === id - styleIdOffset
+                );
+                if (styleIndex === -1) {
+                  throw Error("Invalid library format (voice sample name)");
+                }
+                // indexは1始まりなので1引く
+                svModelInfoObj.speakerInfos[uuid].styleInfos[
+                  styleIndex
+                ].voiceSamples[index - 1] = data;
+              } else if (filename.endsWith(".png")) {
+                const uuid = separatedPath[2];
+                if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                  throw Error("Invalid library format (speaker info)");
+                }
+                if (filename === "portrait.png") {
+                  svModelInfoObj.speakerInfos[uuid].portrait = data;
+                } else {
+                  const id = parseInt(filenameWithoutExt);
+                  if (isNaN(id)) {
+                    throw Error("Invalid library format (style icon name)");
+                  }
+                  const styleIndex = svModelInfoObj.speakerInfos[
+                    uuid
+                  ].styleInfos.findIndex(
+                    (value) => value.id === id - styleIdOffset
+                  );
+                  if (styleIndex === -1) {
+                    throw Error("Invalid library format (icon name)");
+                  }
+                  svModelInfoObj.speakerInfos[uuid].styleInfos[
+                    styleIndex
+                  ].icon = data;
+                }
+              } else if (filename === "policy.md") {
+                const uuid = separatedPath[2];
+                if (svModelInfoObj.speakerInfos[uuid] === undefined) {
+                  throw Error("Invalid library format (speaker info)");
+                }
+                svModelInfoObj.speakerInfos[uuid].policy = data;
+              }
+            }
+          );
+
+          await Promise.all(speakerInfoProcesses).catch((e) => {
+            throw Error(e);
+          });
 
           // setするとき
           context.commit("SET_SV_MODEL_INFO", { svModelInfo: svModelInfoObj });
