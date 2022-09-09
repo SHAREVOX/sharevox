@@ -118,24 +118,6 @@ export const svModelStore: VoiceVoxStoreOptions<
                     break;
                 }
               }
-
-              // given files
-              // - variance_model
-              // - embedder_model
-              // - decoder_model
-              // - speaker_infos
-              //   - portrait.png
-              //   - style_infos:
-              //     uuid: {
-              //       - icon: <id>.png
-              //       - voice_samples: [
-              //         <id>_00<n>.wav
-              //       ]
-              //     }
-
-              // console.log(separatedPath);
-              // console.log(zipObject);
-              // TODO: read data from zipObject
             }
           );
           await Promise.all(modelProcesses);
