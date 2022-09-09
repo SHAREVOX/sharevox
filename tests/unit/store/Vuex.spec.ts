@@ -44,7 +44,7 @@ describe("store/vuex.js test", () => {
         isDictionaryManageDialogOpen: false,
         isAcceptRetrieveTelemetryDialogOpen: false,
         isAcceptTermsDialogOpen: false,
-        isImportSoundLibraryDialogOpen: false,
+        isImportSvModelInfoDialogOpen: false,
         isMaximized: false,
         savedLastCommandUnixMillisec: null,
         savingSetting: {

@@ -128,8 +128,8 @@
     </q-page-container>
   </q-layout>
   <help-dialog v-model="isHelpDialogOpenComputed" />
-  <import-sound-library-dialog
-    v-model="isImportSoundLibraryDialogOpenComputed"
+  <import-sv-model-info-dialog
+    v-model="isImportSvModelInfoDialogOpenComputed"
   />
   <setting-dialog v-model="isSettingDialogOpenComputed" />
   <hotkey-setting-dialog v-model="isHotkeySettingDialogOpenComputed" />
@@ -177,7 +177,7 @@ import CharacterOrderDialog from "@/components/CharacterOrderDialog.vue";
 import AcceptRetrieveTelemetryDialog from "@/components/AcceptRetrieveTelemetryDialog.vue";
 import AcceptTermsDialog from "@/components/AcceptTermsDialog.vue";
 import DictionaryManageDialog from "@/components/DictionaryManageDialog.vue";
-import ImportSoundLibraryDialog from "@/components/ImportSoundLibraryDialog.vue";
+import ImportSvModelInfoDialog from "@/components/ImportSvModelInfoDialog.vue";
 import { AudioItem, EngineState } from "@/store/type";
 import { QResizeObserver, useQuasar } from "quasar";
 import path from "path";
@@ -208,7 +208,7 @@ export default defineComponent({
     AcceptRetrieveTelemetryDialog,
     AcceptTermsDialog,
     DictionaryManageDialog,
-    ImportSoundLibraryDialog,
+    ImportSvModelInfoDialog,
   },
 
   setup() {
@@ -639,11 +639,11 @@ export default defineComponent({
     });
 
     // 音声ライブラリインストール
-    const isImportSoundLibraryDialogOpenComputed = computed({
-      get: () => store.state.isImportSoundLibraryDialogOpen,
+    const isImportSvModelInfoDialogOpenComputed = computed({
+      get: () => store.state.isImportSvModelInfoDialogOpen,
       set: (val) =>
         store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
-          isImportSoundLibraryDialogOpen: val,
+          isImportSvModelInfoDialogOpen: val,
         }),
     });
 
@@ -658,7 +658,7 @@ export default defineComponent({
             filePath: file.path,
             confirm: true,
           });
-          isImportSoundLibraryDialogOpenComputed.value = true;
+          isImportSvModelInfoDialogOpenComputed.value = true;
           break;
         case ".txt":
           store.dispatch("COMMAND_IMPORT_FROM_FILE", { filePath: file.path });
@@ -717,7 +717,7 @@ export default defineComponent({
       isDictionaryManageDialogOpenComputed,
       isAcceptRetrieveTelemetryDialogOpenComputed,
       isAcceptTermsDialogOpenComputed,
-      isImportSoundLibraryDialogOpenComputed,
+      isImportSvModelInfoDialogOpenComputed,
       dragEventCounter,
       loadDraggedFile,
     };

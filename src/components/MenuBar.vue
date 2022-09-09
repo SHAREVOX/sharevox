@@ -201,7 +201,7 @@ export default defineComponent({
         isDefaultStyleSelectDialogOpen: false,
       });
       store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
-        isImportSoundLibraryDialogOpen: false,
+        isImportSvModelInfoDialogOpen: false,
       });
     };
 
@@ -211,9 +211,9 @@ export default defineComponent({
       });
     };
 
-    const openImportSoundLibraryDialog = () => {
+    const openImportSvModelInfoialog = () => {
       store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
-        isImportSoundLibraryDialogOpen: true,
+        isImportSvModelInfoDialogOpen: true,
       });
     };
 
