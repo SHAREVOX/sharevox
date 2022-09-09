@@ -1168,6 +1168,12 @@ type SVModelStoreTypes = {
   SET_SV_MODEL_INFO: {
     mutation: { svModelInfo?: SVModelInfo };
   };
+  REGISTER_SV_MODEL: {
+    action(): boolean;
+  };
+  GET_SV_MODELS: {
+    action(): string[] | null;
+  };
 };
 
 export type SVModelGetters = StoreType<SVModelStoreTypes, "getter">;
