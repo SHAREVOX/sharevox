@@ -160,7 +160,7 @@ export const svModelStore: VoiceVoxStoreOptions<
               portrait: "",
               styleInfos: meta.styles.map((value) => {
                 return {
-                  id: value.id,
+                  id: value.id + styleIdOffset,
                   icon: "",
                   voiceSamples: ["", "", ""],
                 };
@@ -208,9 +208,7 @@ export const svModelStore: VoiceVoxStoreOptions<
                 }
                 const styleIndex = svModelInfoObj.speakerInfos[
                   uuid
-                ].styleInfos.findIndex(
-                  (value) => value.id === id - styleIdOffset
-                );
+                ].styleInfos.findIndex((value) => value.id === id);
                 if (styleIndex === -1) {
                   throw Error("Invalid library format (voice sample name)");
                 }
@@ -232,9 +230,7 @@ export const svModelStore: VoiceVoxStoreOptions<
                   }
                   const styleIndex = svModelInfoObj.speakerInfos[
                     uuid
-                  ].styleInfos.findIndex(
-                    (value) => value.id === id - styleIdOffset
-                  );
+                  ].styleInfos.findIndex((value) => value.id === id);
                   if (styleIndex === -1) {
                     throw Error("Invalid library format (icon name)");
                   }
