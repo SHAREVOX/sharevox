@@ -304,6 +304,17 @@ export default defineComponent({
               store.dispatch("RESTART_ENGINE_ALL");
             },
           },
+          {
+            type: "button",
+            label: "音声ライブラリインストール",
+            onClick: () => {
+              store.dispatch("IMPORT_SV_MODEL_INFO", {});
+              closeAllDialog();
+              if (!store.state.isImportSoundLibraryDialogOpen) {
+                openImportSoundLibraryDialog();
+              }
+            },
+          },
         ],
       },
       {
