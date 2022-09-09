@@ -311,7 +311,7 @@ export default defineComponent({
               // Select and load a ZIP File for sound library.
               const filePath =
                 await window.electron.showImportSvModelInfoDialog({
-                  title: "サウンドライブラリ用ファイル(.svlib)の選択",
+                  title: "音声ライブラリファイル(.svlib)の選択",
                 });
               if (!filePath) return;
               if (!store.state.isImportSvModelInfoDialogOpen) {
