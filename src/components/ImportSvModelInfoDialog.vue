@@ -187,11 +187,8 @@
               </div>
             </q-tab-panel>
             <!-- 利用規約画面 -->
-            <q-tab-panel
-              :name="1"
-              class="relative-absolute-wrapper scroller markdown-body"
-            >
-              <div class="q-pa-md markdown" v-html="policyHtml" />
+            <q-tab-panel :name="1" class="q-pa-xl markdown-body">
+              <div class="markdown overflow-auto" v-html="policyHtml" />
             </q-tab-panel>
           </q-tab-panels>
         </q-page>
@@ -600,11 +597,6 @@ export default defineComponent({
     border-radius: 6px;
     padding: 14px;
   }
-}
-
-.scroller {
-  width: 100%;
-  overflow: auto;
 }
 
 @media screen and (max-width: 700px) {
