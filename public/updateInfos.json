@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.1.2",
+    "descriptions": [
+      "文字列の置き換えミスの修正",
+      "前後無音が適用されない問題の修正"
+    ],
+    "contributors": []
+  },
+  {
     "version": "0.1.1",
     "descriptions": [
       "Linux GPU版が起動できない問題を修正",
