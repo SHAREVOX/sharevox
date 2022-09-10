@@ -32,6 +32,11 @@ module.exports = {
             name: "SHAREVOX Project file",
             role: "Editor",
           },
+          {
+            ext: "svlib",
+            name: "SHAREVOX Voice Library file",
+            role: "Editor",
+          },
         ],
         extraFiles: [
           { from: "build/README.txt", to: "README.txt" },

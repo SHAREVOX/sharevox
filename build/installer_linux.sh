@@ -428,6 +428,12 @@ cat << EOS > "${MIME_INSTALL_DIR}/packages/sharevox.xml"
         <glob pattern="*.svproj" />
         <icon name="sharevox" />
     </mime-type>
+    <mime-type type="application/x-sharevox">
+        <comment>SHAREVOX Voice Library file</comment>
+        <comment xml:lang="ja">SHAREVOX 音声ライブラリファイル</comment>
+        <glob pattern="*.svlib" />
+        <icon name="sharevox" />
+    </mime-type>
 </mime-info>
 EOS
 
