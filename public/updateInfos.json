@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.1.1",
+    "descriptions": [
+      "Linux GPU版が起動できない問題を修正",
+      "「あ・い・う・え・お・を・ん」が調整・出力できない問題を修正"
+    ],
+    "contributors": []
+  },
+  {
     "version": "0.1.0",
     "descriptions": ["ファーストリリース"],
     "contributors": []
