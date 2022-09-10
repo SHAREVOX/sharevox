@@ -60,7 +60,7 @@ export const DEFAULT_FILE_NAME_TEMPLATE =
   "$連番$_$キャラ$（$スタイル$）_$テキスト$.wav";
 const DEFAULT_FILE_NAME_VARIABLES = {
   index: 0,
-  characterName: "四国めたん",
+  characterName: "小春音アミ",
   text: "テキストテキストテキスト",
   styleName: "ノーマル",
   date: currentDateString(),
