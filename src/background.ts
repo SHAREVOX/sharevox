@@ -804,6 +804,14 @@ async function createWindow() {
   win.webContents.once("did-finish-load", () => {
     if (isMac) {
       if (filePathOnMac != null) {
+        if (filePathOnMac.endsWith(".svlib")) {
+          ipcMainSend(win, "IMPORT_SV_MODEL_INFO", {
+            filePath: filePathOnMac,
+            confirm: false,
+          });
+          filePathOnMac = null;
+          return;
+        }
         ipcMainSend(win, "LOAD_PROJECT_FILE", {
           filePath: filePathOnMac,
           confirm: false,
@@ -813,6 +821,13 @@ async function createWindow() {
     } else {
       if (process.argv.length >= 2) {
         const filePath = process.argv[1];
+        if (filePath.endsWith(".svlib")) {
+          ipcMainSend(win, "IMPORT_SV_MODEL_INFO", {
+            filePath,
+            confirm: false,
+          });
+          return;
+        }
         ipcMainSend(win, "LOAD_PROJECT_FILE", { filePath, confirm: false });
       }
     }

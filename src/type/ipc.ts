@@ -257,6 +257,11 @@ export type IpcSOData = {
     return: void;
   };
 
+  IMPORT_SV_MODEL_INFO: {
+    args: [obj: { filePath: string; confirm?: boolean }];
+    return: void;
+  };
+
   DETECT_MAXIMIZED: {
     args: [];
     return: void;

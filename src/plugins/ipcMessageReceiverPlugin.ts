@@ -14,6 +14,12 @@ export const ipcMessageReceiver: Plugin = {
         options.store.dispatch("LOAD_PROJECT_FILE", { filePath, confirm })
     );
 
+    window.electron.onReceivedIPCMsg(
+      "IMPORT_SV_MODEL_INFO",
+      (_, { filePath, confirm } = {}) =>
+        options.store.dispatch("IMPORT_SV_MODEL_INFO", { filePath, confirm })
+    );
+
     window.electron.onReceivedIPCMsg("DETECT_MAXIMIZED", () =>
       options.store.dispatch("DETECT_MAXIMIZED")
     );
