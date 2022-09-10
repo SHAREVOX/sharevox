@@ -602,7 +602,7 @@
                       transition-show="jump-left"
                       transition-hide="jump-right"
                     >
-                      各UIの利用率などのデータを送信してVOICEVOXの改善に役立てます。テキストデータ・音声データは送信しません。
+                      各UIの利用率などのデータを送信してSHAREVOXの改善に役立てます。テキストデータ・音声データは送信しません。
                     </q-tooltip>
                   </q-icon>
                 </div>
@@ -765,7 +765,7 @@ export default defineComponent({
         $q.dialog({
           title: "ソフトウェア利用状況のデータ収集の無効化",
           message:
-            "ソフトウェア利用状況のデータ収集を完全に無効にするには、VOICEVOXを再起動する必要があります",
+            "ソフトウェア利用状況のデータ収集を完全に無効にするには、SHAREVOXを再起動する必要があります",
           ok: {
             flat: true,
             textColor: "display",
