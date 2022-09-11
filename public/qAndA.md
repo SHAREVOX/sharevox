@@ -57,7 +57,7 @@ GPU 搭載の Windows PC と、Nvidia 製 GPU 搭載の Linux PC に対応して
 
 ### Q. 過去のバージョンに戻すことはできますか？
 
-[こちら](https://github.com/VOICEVOX/voicevox/releases)から過去のバージョンを入手することが出来ます。
+[こちら](https://github.com/SHAREVOX/sharevox/releases)から過去のバージョンを入手することが出来ます。
 
 ## 使い方に関する質問
 

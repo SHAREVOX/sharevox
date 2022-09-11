@@ -21,7 +21,7 @@ labels: enhancement
 
 <!-- 実現方法について検討済みであるなら -->
 
-## VOICEVOXのバージョン
+## SHAREVOXのバージョン
 
 0.?.0
 

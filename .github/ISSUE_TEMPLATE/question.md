@@ -8,7 +8,7 @@ labels: question
 
 <!-- ここに記載してください -->
 
-## VOICEVOXのバージョン
+## SHAREVOXのバージョン
 
 0.?.0
 
