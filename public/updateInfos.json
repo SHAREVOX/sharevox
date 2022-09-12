@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.1.3",
+    "descriptions": [
+      "Windowsにおいて、ユーザー名に日本語が含まれる際に起動できない問題を修正",
+      "Windows・Linuxのデスクトップアイコンの視認性改善"
+    ],
+    "contributors": [
+      "shigobu"
+    ]
+  },
+  {
     "version": "0.1.2",
     "descriptions": [
       "文字列の置き換えミスの修正",
