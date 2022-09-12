@@ -56,7 +56,7 @@ module.exports = {
           "afterAllArtifactBuild.js"
         ),
         win: {
-          icon: "public/icon.png",
+          icon: "public/icon-desktop.png",
           target: [
             {
               target: "nsis-web",
@@ -84,7 +84,7 @@ module.exports = {
             LINUX_ARTIFACT_NAME !== "" ? LINUX_ARTIFACT_NAME : undefined,
           executableName:
             LINUX_EXECUTABLE_NAME !== "" ? LINUX_EXECUTABLE_NAME : undefined,
-          icon: "public/icon.png",
+          icon: "public/icon-desktop.png",
           category: "AudioVideo",
           mimeTypes: ["application/x-sharevox"],
           target: [
