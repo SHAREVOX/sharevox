@@ -361,8 +361,8 @@ export default defineComponent({
       selectedStyleIndexes.value[speakerUuid] = styleIndex;
 
       // 音声を再生する。同じstyleIndexだったら停止する。
-      const selectedStyleInfo =
-        newCharacters.value[speakerUuid].styleInfos[styleIndex];
+      if (!selectedStyles.value) return;
+      const selectedStyleInfo = selectedStyles.value[speakerUuid];
       togglePlayOrStop(speakerUuid, selectedStyleInfo, 0);
     };
 
