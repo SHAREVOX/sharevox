@@ -400,7 +400,7 @@ export default defineComponent({
       });
     };
 
-    const startInstall = async () => {
+    const installProcess = async () => {
       installingModel.value = true;
       const success = await store.dispatch("REGISTER_SV_MODEL");
       installingModel.value = false;
@@ -444,8 +444,7 @@ export default defineComponent({
       } else {
         $q.dialog({
           title: "音声ライブラリのインストールに失敗しました",
-          message:
-            "既に音声ライブラリがインストールされていませんか？<br />そうでない場合、エンジンの再起動をお試しください。",
+          message: "エンジンの再起動をお試しください。",
           html: true,
           persistent: true,
           focus: "cancel",
@@ -459,6 +458,59 @@ export default defineComponent({
           store.dispatch("RESET_SV_MODEL_INFO");
         });
       }
+    };
+
+    const startInstall = async () => {
+      const installedModels = await store.dispatch("GET_SV_MODELS");
+      if (installedModels === null) {
+        $q.dialog({
+          title: "音声ライブラリのインストールに失敗しました",
+          message: "エンジンの再起動をお試しください。",
+          html: true,
+          persistent: true,
+          focus: "cancel",
+          ok: {
+            label: "閉じる",
+            flat: true,
+            textColor: "display",
+          },
+        }).onOk(() => {
+          modelValueComputed.value = false;
+          store.dispatch("RESET_SV_MODEL_INFO");
+        });
+        return;
+      }
+      const installModelUuid = store.state.importedSvModel?.uuid;
+      if (installModelUuid === undefined)
+        throw new Error(`installModelUuid === undefined`);
+      if (installedModels.find((v) => v === installModelUuid) !== undefined) {
+        $q.dialog({
+          title: "音声ライブラリが存在します",
+          message: "上書きインストールしますか？",
+          html: true,
+          persistent: true,
+          focus: "cancel",
+          ok: {
+            label: "はい",
+            flat: true,
+            textColor: "display",
+          },
+          cancel: {
+            label: "いいえ",
+            flat: true,
+            textColor: "display",
+          },
+        })
+          .onOk(async () => {
+            await installProcess();
+          })
+          .onCancel(() => {
+            modelValueComputed.value = false;
+            store.dispatch("RESET_SV_MODEL_INFO");
+          });
+        return;
+      }
+      await installProcess();
     };
 
     const prevPage = () => {
