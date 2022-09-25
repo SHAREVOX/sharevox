@@ -22,6 +22,7 @@
                 text-color="toolbar-button-display"
                 class="text-no-wrap q-mr-md"
                 @click="cancelInstall"
+                :disable="!loadedModel"
               />
               <q-btn
                 unelevated
@@ -30,6 +31,7 @@
                 text-color="toolbar-button-display"
                 class="text-no-wrap"
                 @click="nextPage"
+                :disable="!loadedModel"
               />
             </template>
             <template v-else>
@@ -40,6 +42,7 @@
                 text-color="toolbar-button-display"
                 class="text-no-wrap q-mr-md"
                 @click="prevPage"
+                :disable="installingModel"
               />
               <q-btn
                 unelevated
@@ -48,6 +51,7 @@
                 text-color="toolbar-button-display"
                 class="text-no-wrap"
                 @click="startInstall"
+                :disable="installingModel"
               />
             </template>
           </div>
