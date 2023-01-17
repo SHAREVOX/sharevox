@@ -71,6 +71,7 @@ module.exports = {
               arch: ["x64"],
             },
           ],
+          sign: path.resolve(__dirname, "build", "codesign.js"),
         },
         directories: {
           buildResources: "build",
