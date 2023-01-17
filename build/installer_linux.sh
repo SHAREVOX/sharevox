@@ -195,7 +195,7 @@ if [ "$REUSE_LIST" != "1" ]; then
 fi
 
 echo
-echo "[+] Listing of splitted archives..."
+echo "[+] Listing of split archives..."
 _readarray ARCHIVE_LIST < "list.txt"
 
 if [ -z "$(echo "${ARCHIVE_LIST[0]}" | awk '$0=$1')" ]; then
@@ -307,10 +307,10 @@ done
 # Extract archives
 echo "[+] Extracting archive..."
 FIRST_ARCHIVE=${ARCHIVE_NAME_LIST[0]}
-${COMMAND_7Z} x "${FIRST_ARCHIVE}" -y
+"${COMMAND_7Z}" x "${FIRST_ARCHIVE}" -y
 
 # Get AppImage filename from 7z archive
-APPIMAGE=$(${COMMAND_7Z} l -slt -ba "${FIRST_ARCHIVE}" | grep 'Path = ' | head -n1 | sed 's/Path = \(.*\)/\1/')
+APPIMAGE=$("${COMMAND_7Z}" l -slt -ba "${FIRST_ARCHIVE}" | grep 'Path = ' | head -n1 | sed 's/Path = \(.*\)/\1/')
 chmod +x "${APPIMAGE}"
 
 # Dump version
@@ -327,7 +327,7 @@ IFS=\$'\n\t'
 
 cat << 'BANNER'
 +-+-+-+-+-+-+-+-+
-|V|O|I|C|E|V|O|X|
+|S|H|A|R|E|V|O|X|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         |U|n|i|n|s|t|a|l|l|e|r|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -336,14 +336,14 @@ cat << 'BANNER'
 BANNER
 
 VOICEVOX_INSTALLED_FILES=(
-    ${DESKTOP_ENTRY_INSTALL_DIR}/sharevox.desktop
-    ${ICON_INSTALL_DIR}/sharevox.png
-    ${ICON_INSTALL_DIR}/hicolor/0x0/apps/sharevox.png
-    ${MIME_INSTALL_DIR}/packages/sharevox.xml
+    "${DESKTOP_ENTRY_INSTALL_DIR}/sharevox.desktop"
+    "${ICON_INSTALL_DIR}/sharevox.png"
+    "${ICON_INSTALL_DIR}/hicolor/0x0/apps/sharevox.png"
+    "${MIME_INSTALL_DIR}/packages/sharevox.xml"
 )
 
 VOICEVOX_INSTALLED_DIR=(
-    ${APP_DIR}
+    "${APP_DIR}"
 )
 
 echo "[+] Uninstalling SHAREVOX..."
@@ -375,7 +375,7 @@ EOS
 
 # Remove archives
 if [ "${KEEP_ARCHIVE}" != "1" ]; then
-    echo "[+] Removing splitted archives..."
+    echo "[+] Removing split archives..."
 
     for filename in "${ARCHIVE_NAME_LIST[@]}"; do
         echo "[+] Removing ${filename}..."
@@ -428,9 +428,17 @@ cat << EOS > "${MIME_INSTALL_DIR}/packages/sharevox.xml"
         <glob pattern="*.svproj" />
         <icon name="sharevox" />
     </mime-type>
-    <mime-type type="application/x-sharevox">
+    <mime-type type="application/x-voicevox-plugin-package">
+        <comment>VOICEVOX Plugin package</comment>
+        <comment xml:lang="ja">VOICEVOX プラグインパッケージ</comment>
+        <sub-class-of type="application/zip" />
+        <glob pattern="*.vvpp" />
+        <icon name="sharevox" />
+    </mime-type>
+    <mime-type type="application/x-sharevox-voice-lib">
         <comment>SHAREVOX Voice Library file</comment>
         <comment xml:lang="ja">SHAREVOX 音声ライブラリファイル</comment>
+        <sub-class-of type="application/zip" />
         <glob pattern="*.svlib" />
         <icon name="sharevox" />
     </mime-type>
@@ -448,7 +456,7 @@ fi
 # Update desktop file database
 echo "[+] Updating desktop file database..."
 if command -v update-desktop-database &> /dev/null; then
-    update-desktop-database
+    update-desktop-database "${DESKTOP_ENTRY_INSTALL_DIR}"
 else
     echo "[-] Skipped: Command 'update-desktop-database' not found"
 fi

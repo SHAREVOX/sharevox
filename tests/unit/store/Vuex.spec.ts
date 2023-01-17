@@ -12,6 +12,7 @@ import { assert } from "chai";
 import { proxyStore } from "@/store/proxy";
 import { dictionaryStore } from "@/store/dictionary";
 import { svModelStore } from "@/store/svModel";
+import { engineStore } from "@/store/engine";
 const isDevelopment = process.env.NODE_ENV == "development";
 // TODO: Swap external files to Mock
 
@@ -22,6 +23,7 @@ describe("store/vuex.js test", () => {
         engineStates: {
           "88022f86-c823-436e-85a3-500c629749c4": "STARTING",
         },
+        characterInfos: {},
         defaultStyleIds: [],
         userCharacterOrder: [],
         audioItems: {},
@@ -43,10 +45,12 @@ describe("store/vuex.js test", () => {
         isCharacterOrderDialogOpen: false,
         isDefaultStyleSelectDialogOpen: false,
         isDictionaryManageDialogOpen: false,
+        isEngineManageDialogOpen: false,
         isAcceptRetrieveTelemetryDialogOpen: false,
         isAcceptTermsDialogOpen: false,
         isImportSvModelInfoDialogOpen: false,
         isMaximized: false,
+        isSafeMode: false,
         savedLastCommandUnixMillisec: null,
         savingSetting: {
           fileEncoding: "UTF-8",
@@ -64,6 +68,7 @@ describe("store/vuex.js test", () => {
           currentTheme: "Default",
           availableThemes: [],
         },
+        editorFont: "default",
         isPinned: false,
         isFullscreen: false,
         presetItems: {},
@@ -76,9 +81,36 @@ describe("store/vuex.js test", () => {
         engineInfos: {
           "88022f86-c823-436e-85a3-500c629749c4": {
             uuid: "88022f86-c823-436e-85a3-500c629749c4",
+            name: "Engine 1",
             executionEnabled: false,
             executionFilePath: "",
+            executionArgs: [],
             host: "http://127.0.0.1",
+            type: "default",
+          },
+        },
+        engineManifests: {
+          "88022f86-c823-436e-85a3-500c629749c4": {
+            manifestVersion: "0.13.0",
+            name: "DUMMY VOICEVOX ENGINE",
+            brandName: "DUMMY VOICEVOX",
+            uuid: "c7b58856-bd56-4aa1-afb7-b8415f824b06",
+            url: "https://github.com/VOICEVOX/voicevox_engine",
+            icon: "engine_manifest_assets/icon.png",
+            defaultSamplingRate: 24000,
+            termsOfService: "engine_manifest_assets/terms_of_service.md",
+            updateInfos: [],
+            dependencyLicenses: [],
+            supportedFeatures: {
+              adjustMoraPitch: true,
+              adjustPhonemeLength: true,
+              adjustSpeedScale: true,
+              adjustPitchScale: true,
+              adjustIntonationScale: true,
+              adjustVolumeScale: true,
+              interrogativeUpspeak: true,
+              synthesisMorphing: true,
+            },
           },
         },
         experimentalSetting: {
@@ -94,11 +126,13 @@ describe("store/vuex.js test", () => {
         confirmedTips: {
           tweakableSliderByScroll: false,
         },
+        progress: -1,
       },
       getters: {
         ...uiStore.getters,
         ...audioStore.getters,
         ...commandStore.getters,
+        ...engineStore.getters,
         ...projectStore.getters,
         ...settingStore.getters,
         ...audioCommandStore.getters,
@@ -112,6 +146,7 @@ describe("store/vuex.js test", () => {
         ...uiStore.mutations,
         ...audioStore.mutations,
         ...commandStore.mutations,
+        ...engineStore.mutations,
         ...projectStore.mutations,
         ...settingStore.mutations,
         ...audioCommandStore.mutations,
@@ -125,6 +160,7 @@ describe("store/vuex.js test", () => {
         ...uiStore.actions,
         ...audioStore.actions,
         ...commandStore.actions,
+        ...engineStore.actions,
         ...projectStore.actions,
         ...settingStore.actions,
         ...audioCommandStore.actions,
@@ -144,6 +180,7 @@ describe("store/vuex.js test", () => {
     store.state.engineIds.forEach((engineId) =>
       assert.equal(store.state.engineStates[engineId], "STARTING")
     );
+    assert.isObject(store.state.characterInfos);
     assert.isArray(store.state.defaultStyleIds);
     assert.isObject(store.state.audioItems);
     assert.isEmpty(store.state.audioItems);

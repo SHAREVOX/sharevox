@@ -8,7 +8,8 @@ module.exports = {
     "eslint:recommended",
     "@vue/typescript/recommended",
     "@vue/prettier",
-    "@vue/prettier/@typescript-eslint",
+    "@vue/eslint-config-typescript",
+    "@vue/eslint-config-prettier",
   ],
   parser: "vue-eslint-parser",
   parserOptions: {
@@ -24,10 +25,27 @@ module.exports = {
         endOfLine: "auto",
       },
     ],
+    "vue/no-restricted-syntax": [
+      "error",
+      {
+        selector: "LogicalExpression[operator=??]",
+        message: `template内で"??"を使うとgithubのsyntax highlightが崩れるので\n三項演算子等を使って書き換えてください`,
+      },
+      {
+        selector: "MemberExpression[optional=true]",
+        message: `template内で"?."を使うとgithubのsyntax highlightが崩れるので\n三項演算子等を使って書き換えてください`,
+      },
+    ],
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
         ignoreRestSiblings: true,
+      },
+    ],
+    "vue/component-tags-order": [
+      "error",
+      {
+        order: ["template", "script", "style"],
       },
     ],
   },

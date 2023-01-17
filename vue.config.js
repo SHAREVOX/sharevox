@@ -30,11 +30,19 @@ module.exports = {
           {
             ext: "svproj",
             name: "SHAREVOX Project file",
+            description: "SHAREVOX Project file",
+            role: "Editor",
+          },
+          {
+            ext: "vvpp",
+            name: "VOICEVOX Plugin package",
+            description: "VOICEVOX Plugin package",
             role: "Editor",
           },
           {
             ext: "svlib",
             name: "SHAREVOX Voice Library file",
+            description: "SHAREVOX Voice Library file",
             role: "Editor",
           },
         ],

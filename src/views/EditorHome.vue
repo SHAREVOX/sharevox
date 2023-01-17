@@ -1,11 +1,13 @@
 <template>
   <menu-bar />
 
-  <q-layout reveal elevated>
+  <q-layout reveal elevated container class="layout-container">
     <header-bar />
 
     <q-page-container>
       <q-page class="main-row-panes">
+        <progress-dialog />
+
         <!-- TODO: 複数エンジン対応 -->
         <div
           v-if="!isCompletedInitialStartup || allEngineState === 'STARTING'"
@@ -20,6 +22,19 @@
                   : "データ準備中・・・"
               }}
             </div>
+
+            <template v-if="isEngineWaitingLong">
+              <q-separator spaced />
+              エンジン起動に時間がかかっています。<br />
+              <q-btn
+                outline
+                @click="restartAppWithSafeMode"
+                v-if="isMultipleEngine"
+              >
+                セーフモードで起動する</q-btn
+              >
+              <q-btn outline @click="openFaq" v-else>FAQを見る</q-btn>
+            </template>
           </div>
         </div>
         <q-splitter
@@ -135,16 +150,17 @@
   <hotkey-setting-dialog v-model="isHotkeySettingDialogOpenComputed" />
   <header-bar-custom-dialog v-model="isToolbarSettingDialogOpenComputed" />
   <character-order-dialog
-    v-if="characterInfos"
-    :characterInfos="characterInfos"
+    v-if="orderedAllCharacterInfos.length > 0"
+    :characterInfos="orderedAllCharacterInfos"
     v-model="isCharacterOrderDialogOpenComputed"
   />
   <default-style-select-dialog
-    v-if="characterInfos"
-    :characterInfos="characterInfos"
+    v-if="orderedAllCharacterInfos.length > 0"
+    :characterInfos="orderedAllCharacterInfos"
     v-model="isDefaultStyleSelectDialogOpenComputed"
   />
   <dictionary-manage-dialog v-model="isDictionaryManageDialogOpenComputed" />
+  <engine-manage-dialog v-model="isEngineManageDialogOpenComputed" />
   <accept-retrieve-telemetry-dialog
     v-model="isAcceptRetrieveTelemetryDialogOpenComputed"
   />
@@ -178,6 +194,8 @@ import AcceptRetrieveTelemetryDialog from "@/components/AcceptRetrieveTelemetryD
 import AcceptTermsDialog from "@/components/AcceptTermsDialog.vue";
 import DictionaryManageDialog from "@/components/DictionaryManageDialog.vue";
 import ImportSvModelInfoDialog from "@/components/ImportSvModelInfoDialog.vue";
+import EngineManageDialog from "@/components/EngineManageDialog.vue";
+import ProgressDialog from "@/components/ProgressDialog.vue";
 import { AudioItem, EngineState } from "@/store/type";
 import { QResizeObserver, useQuasar } from "quasar";
 import path from "path";
@@ -187,9 +205,10 @@ import {
   SplitterPosition,
 } from "@/type/preload";
 import { parseCombo, setHotkeyFunctions } from "@/store/setting";
+import cloneDeep from "clone-deep";
 
 export default defineComponent({
-  name: "Home",
+  name: "EditorHome",
 
   components: {
     draggable,
@@ -209,6 +228,8 @@ export default defineComponent({
     AcceptTermsDialog,
     DictionaryManageDialog,
     ImportSvModelInfoDialog,
+    EngineManageDialog,
+    ProgressDialog,
   },
 
   setup() {
@@ -219,6 +240,8 @@ export default defineComponent({
     const audioKeys = computed(() => store.state.audioKeys);
     const uiLocked = computed(() => store.getters.UI_LOCKED);
 
+    const isMultipleEngine = computed(() => store.state.engineIds.length > 1);
+
     // hotkeys handled by Mousetrap
     const hotkeyMap = new Map<HotkeyAction, () => HotkeyReturnType>([
       [
@@ -228,6 +251,17 @@ export default defineComponent({
             focusCell({ audioKey: activeAudioKey.value });
           }
           return false; // this is the same with event.preventDefault()
+        },
+      ],
+      [
+        // FIXME: テキスト欄にフォーカスがある状態でも実行できるようにする
+        // https://github.com/VOICEVOX/voicevox/pull/1096#issuecomment-1378651920
+        "テキスト欄を複製",
+        () => {
+          if (activeAudioKey.value != undefined) {
+            duplicateAudioItem();
+          }
+          return false;
         },
       ],
     ]);
@@ -373,13 +407,14 @@ export default defineComponent({
     );
     const addAudioItem = async () => {
       const prevAudioKey = activeAudioKey.value;
+      let engineId: string | undefined = undefined;
       let styleId: number | undefined = undefined;
       let presetKey: string | undefined = undefined;
       if (prevAudioKey !== undefined) {
+        engineId = store.state.audioItems[prevAudioKey].engineId;
         styleId = store.state.audioItems[prevAudioKey].styleId;
         presetKey = store.state.audioItems[prevAudioKey].presetKey;
       }
-      let audioItem: AudioItem;
       let baseAudioItem: AudioItem | undefined = undefined;
       if (store.state.inheritAudioInfo) {
         baseAudioItem = prevAudioKey
@@ -388,7 +423,8 @@ export default defineComponent({
       }
       //パラメータ引き継ぎがONの場合は話速等のパラメータを引き継いでテキスト欄を作成する
       //パラメータ引き継ぎがOFFの場合、baseAudioItemがundefinedになっているのでパラメータ引き継ぎは行われない
-      audioItem = await store.dispatch("GENERATE_AUDIO_ITEM", {
+      const audioItem = await store.dispatch("GENERATE_AUDIO_ITEM", {
+        engineId,
         styleId,
         presetKey,
         baseAudioItem,
@@ -397,6 +433,22 @@ export default defineComponent({
       const newAudioKey = await store.dispatch("COMMAND_REGISTER_AUDIO_ITEM", {
         audioItem,
         prevAudioKey: activeAudioKey.value,
+        applyPreset: true,
+      });
+      audioCellRefs[newAudioKey].focusTextField();
+    };
+    const duplicateAudioItem = async () => {
+      const prevAudioKey = activeAudioKey.value;
+
+      // audioItemが選択されていない状態で押されたら何もしない
+      if (prevAudioKey == undefined) return;
+
+      const prevAudioItem = store.state.audioItems[prevAudioKey];
+
+      const newAudioKey = await store.dispatch("COMMAND_REGISTER_AUDIO_ITEM", {
+        audioItem: cloneDeep(prevAudioItem),
+        prevAudioKey: activeAudioKey.value,
+        applyPreset: false,
       });
       audioCellRefs[newAudioKey].focusTextField();
     };
@@ -472,26 +524,37 @@ export default defineComponent({
     onMounted(async () => {
       await store.dispatch("GET_ENGINE_INFOS");
 
-      await store.dispatch("START_WAITING_ENGINE_ALL");
-      await store.dispatch("LOAD_CHARACTER");
+      let engineIds: string[];
+      if (store.state.isSafeMode) {
+        // デフォルトエンジンだけを含める
+        const main = Object.values(store.state.engineInfos).find(
+          (engine) => engine.type === "default"
+        );
+        if (!main) {
+          throw new Error("No main engine found");
+        }
+        engineIds = [main.uuid];
+      } else {
+        engineIds = store.state.engineIds;
+      }
+      await Promise.all(
+        engineIds.map(async (engineId) => {
+          await store.dispatch("START_WAITING_ENGINE", { engineId });
+
+          await store.dispatch("FETCH_AND_SET_ENGINE_MANIFEST", { engineId });
+
+          await store.dispatch("LOAD_CHARACTER", { engineId });
+        })
+      );
       await store.dispatch("LOAD_USER_CHARACTER_ORDER");
       await store.dispatch("LOAD_DEFAULT_STYLE_IDS");
+
+      // 辞書を同期
+      await store.dispatch("SYNC_ALL_USER_DICT");
 
       // 新キャラが追加されている場合はキャラ並び替えダイアログを表示
       const newCharacters = await store.dispatch("GET_NEW_CHARACTERS");
       isCharacterOrderDialogOpenComputed.value = newCharacters.length > 0;
-
-      // スタイルが複数あって未選択なキャラがいる場合はデフォルトスタイル選択ダイアログを表示
-      let isUnsetDefaultStyleIds = false;
-      if (characterInfos.value == undefined) throw new Error();
-      for (const info of characterInfos.value) {
-        isUnsetDefaultStyleIds ||=
-          info.metas.styles.length > 1 &&
-          (await store.dispatch("IS_UNSET_DEFAULT_STYLE_ID", {
-            speakerUuid: info.metas.speakerUuid,
-          }));
-      }
-      isDefaultStyleSelectDialogOpenComputed.value = isUnsetDefaultStyleIds;
 
       // 最初のAudioCellを作成
       const audioItem: AudioItem = await store.dispatch(
@@ -504,9 +567,10 @@ export default defineComponent({
       focusCell({ audioKey: newAudioKey });
 
       // 最初の話者を初期化
-      if (audioItem.styleId != undefined) {
+      if (audioItem.engineId != undefined && audioItem.styleId != undefined) {
         store.dispatch("SETUP_SPEAKER", {
           audioKey: newAudioKey,
+          engineId: audioItem.engineId,
           styleId: audioItem.styleId,
         });
       }
@@ -552,25 +616,49 @@ export default defineComponent({
       return lastEngineState; // FIXME: 暫定的に1つのエンジンの状態を返す
     });
 
+    const isEngineWaitingLong = ref<boolean>(false);
+    let engineTimer: number | undefined = undefined;
+    watch(allEngineState, (newEngineState) => {
+      if (engineTimer !== undefined) {
+        clearTimeout(engineTimer);
+        engineTimer = undefined;
+      }
+      if (newEngineState === "STARTING") {
+        isEngineWaitingLong.value = false;
+        engineTimer = window.setTimeout(() => {
+          isEngineWaitingLong.value = true;
+        }, 60000);
+      } else {
+        isEngineWaitingLong.value = false;
+      }
+    });
+    const restartAppWithSafeMode = () => {
+      store.dispatch("RESTART_APP", { isSafeMode: true });
+    };
+
+    const openFaq = () => {
+      window.open("https://voicevox.hiroshiba.jp/qa/", "_blank");
+    };
+
     // ライセンス表示
     const isHelpDialogOpenComputed = computed({
       get: () => store.state.isHelpDialogOpen,
       set: (val) =>
-        store.dispatch("IS_HELP_DIALOG_OPEN", { isHelpDialogOpen: val }),
+        store.dispatch("SET_DIALOG_OPEN", { isHelpDialogOpen: val }),
     });
 
     // 設定
     const isSettingDialogOpenComputed = computed({
       get: () => store.state.isSettingDialogOpen,
       set: (val) =>
-        store.dispatch("IS_SETTING_DIALOG_OPEN", { isSettingDialogOpen: val }),
+        store.dispatch("SET_DIALOG_OPEN", { isSettingDialogOpen: val }),
     });
 
     // ショートカットキー設定
     const isHotkeySettingDialogOpenComputed = computed({
       get: () => store.state.isHotkeySettingDialogOpen,
       set: (val) =>
-        store.dispatch("IS_HOTKEY_SETTING_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isHotkeySettingDialogOpen: val,
         }),
     });
@@ -579,7 +667,7 @@ export default defineComponent({
     const isToolbarSettingDialogOpenComputed = computed({
       get: () => store.state.isToolbarSettingDialogOpen,
       set: (val) =>
-        store.dispatch("IS_TOOLBAR_SETTING_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isToolbarSettingDialogOpen: val,
         }),
     });
@@ -588,19 +676,21 @@ export default defineComponent({
     const isAcceptTermsDialogOpenComputed = computed({
       get: () => store.state.isAcceptTermsDialogOpen,
       set: (val) =>
-        store.dispatch("IS_ACCEPT_TERMS_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isAcceptTermsDialogOpen: val,
         }),
     });
 
     // キャラクター並び替え
-    const characterInfos = computed(() => store.state.characterInfos);
+    const orderedAllCharacterInfos = computed(
+      () => store.getters.GET_ORDERED_ALL_CHARACTER_INFOS
+    );
     const isCharacterOrderDialogOpenComputed = computed({
       get: () =>
         !store.state.isAcceptTermsDialogOpen &&
         store.state.isCharacterOrderDialogOpen,
       set: (val) =>
-        store.dispatch("IS_CHARACTER_ORDER_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isCharacterOrderDialogOpen: val,
         }),
     });
@@ -612,8 +702,17 @@ export default defineComponent({
         !store.state.isCharacterOrderDialogOpen &&
         store.state.isDefaultStyleSelectDialogOpen,
       set: (val) =>
-        store.dispatch("IS_DEFAULT_STYLE_SELECT_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isDefaultStyleSelectDialogOpen: val,
+        }),
+    });
+
+    // エンジン管理
+    const isEngineManageDialogOpenComputed = computed({
+      get: () => store.state.isEngineManageDialogOpen,
+      set: (val) =>
+        store.dispatch("SET_DIALOG_OPEN", {
+          isEngineManageDialogOpen: val,
         }),
     });
 
@@ -621,7 +720,7 @@ export default defineComponent({
     const isDictionaryManageDialogOpenComputed = computed({
       get: () => store.state.isDictionaryManageDialogOpen,
       set: (val) =>
-        store.dispatch("IS_DICTIONARY_MANAGE_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isDictionaryManageDialogOpen: val,
         }),
     });
@@ -633,7 +732,7 @@ export default defineComponent({
         !store.state.isDefaultStyleSelectDialogOpen &&
         store.state.isAcceptRetrieveTelemetryDialogOpen,
       set: (val) =>
-        store.dispatch("IS_ACCEPT_RETRIEVE_TELEMETRY_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isAcceptRetrieveTelemetryDialogOpen: val,
         }),
     });
@@ -642,7 +741,7 @@ export default defineComponent({
     const isImportSvModelInfoDialogOpenComputed = computed({
       get: () => store.state.isImportSvModelInfoDialogOpen,
       set: (val) =>
-        store.dispatch("IS_IMPORT_SV_MODEL_INFO_DIALOG_OPEN", {
+        store.dispatch("SET_DIALOG_OPEN", {
           isImportSvModelInfoDialogOpen: val,
         }),
     });
@@ -707,13 +806,18 @@ export default defineComponent({
       updateAudioDetailPane,
       isCompletedInitialStartup,
       allEngineState,
+      isEngineWaitingLong,
+      isMultipleEngine,
+      restartAppWithSafeMode,
+      openFaq,
       isHelpDialogOpenComputed,
       isSettingDialogOpenComputed,
       isHotkeySettingDialogOpenComputed,
       isToolbarSettingDialogOpenComputed,
-      characterInfos,
+      orderedAllCharacterInfos,
       isCharacterOrderDialogOpenComputed,
       isDefaultStyleSelectDialogOpenComputed,
+      isEngineManageDialogOpenComputed,
       isDictionaryManageDialogOpenComputed,
       isAcceptRetrieveTelemetryDialogOpenComputed,
       isAcceptTermsDialogOpenComputed,
@@ -731,6 +835,18 @@ export default defineComponent({
 
 .q-header {
   height: vars.$header-height;
+}
+
+.layout-container {
+  min-height: calc(100vh - #{vars.$menubar-height});
+}
+
+.q-layout-container > :deep(.absolute-full) {
+  right: 0 !important;
+  > .scroll {
+    width: unset !important;
+    overflow: hidden;
+  }
 }
 
 .waiting-engine {

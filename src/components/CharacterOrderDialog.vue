@@ -72,7 +72,9 @@
                   <img
                     :src="
                       characterInfosMap[speakerUuid].metas.styles[
-                        selectedStyleIndexes[speakerUuid] ?? 0
+                        selectedStyleIndexes[speakerUuid]
+                          ? selectedStyleIndexes[speakerUuid]
+                          : 0
                       ].iconPath
                     "
                     class="style-icon"
@@ -163,7 +165,7 @@
             <draggable
               class="character-order q-px-sm"
               v-model="characterOrder"
-              :item-key="keyOfcharacterOrderItem"
+              :item-key="keyOfCharacterOrderItem"
               @start="characterOrderDragging = true"
               @end="characterOrderDragging = false"
             >
@@ -280,10 +282,10 @@ export default defineComponent({
           selectedCharacter.value = sampleCharacterOrder.value[0];
 
           // 保存済みのキャラクターリストを取得
-          // https://github.com/shirowanisan/voicevox/commit/783d10ee9f1b0e09c91b6186dafd3d52de11297a
+          // FIXME: 不明なキャラを無視しているので、不明キャラの順番が保存時にリセットされてしまう
           characterOrder.value = store.state.userCharacterOrder
             .map((speakerUuid) => characterInfosMap.value[speakerUuid])
-            .filter((characterInfo) => characterInfo !== undefined);
+            .filter((info) => info !== undefined) as CharacterInfo[];
 
           // 含まれていないキャラクターを足す
           const notIncludesCharacterInfos = props.characterInfos.filter(
@@ -303,7 +305,7 @@ export default defineComponent({
     );
 
     // draggable用
-    const keyOfcharacterOrderItem = (item: CharacterInfo) =>
+    const keyOfCharacterOrderItem = (item: CharacterInfo) =>
       item.metas.speakerUuid;
 
     // キャラクター枠のホバー状態を表示するかどうか
@@ -395,7 +397,7 @@ export default defineComponent({
       selectedCharacter,
       selectCharacter,
       characterOrder,
-      keyOfcharacterOrderItem,
+      keyOfCharacterOrderItem,
       isHoverableItem,
       playing,
       togglePlayOrStop,

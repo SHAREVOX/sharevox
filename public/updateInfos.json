@@ -1,5 +1,18 @@
 [
   {
+    "version": "0.2.0-preview.0",
+    "descriptions": [
+      "VOICEVOX 0.14の追従",
+      "Rust版コアへ移行",
+      "エンジンが起動しないことがある問題の修正",
+      "コードサイニング証明書の付与"
+    ],
+    "contributors": [
+      "PickledChair",
+      "qryxip"
+    ]
+  },
+  {
     "version": "0.1.7",
     "descriptions": [
       "音声合成エンジンが異常終了する問題の修正",

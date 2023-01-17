@@ -411,40 +411,27 @@ export default defineComponent({
       if (success) {
         $q.dialog({
           title: "インストール完了",
-          message: "音声ライブラリを反映するため、エンジンを再起動します。",
-          persistent: true,
-          focus: "cancel",
-          ok: {
-            label: "はい",
+          message:
+            "音声ライブラリを反映するには再起動が必要です。今すぐ再起動しますか？",
+          noBackdropDismiss: true,
+          cancel: {
+            label: "後で",
+            color: "display",
             flat: true,
-            textColor: "display",
           },
-        }).onOk(async () => {
-          modelValueComputed.value = false;
-          const engineId: string | undefined = store.state.engineIds[0]; // TODO: 複数エンジン対応
-          if (engineId === undefined)
-            throw new Error(`No such engine registered: index == 0`);
-          await store.dispatch("RESTART_ENGINE", { engineId });
-          await store.dispatch("LOAD_CHARACTER");
-          await store.dispatch("LOAD_USER_CHARACTER_ORDER");
-          await store.dispatch("LOAD_DEFAULT_STYLE_IDS");
-          await store.dispatch("IS_CHARACTER_ORDER_DIALOG_OPEN", {
-            isCharacterOrderDialogOpen: true,
+          ok: {
+            label: "再起動",
+            flat: true,
+            textColor: "warning",
+          },
+        })
+          .onOk(() => {
+            store.dispatch("RESTART_APP", {});
+          })
+          .onCancel(() => {
+            modelValueComputed.value = false;
+            store.dispatch("RESET_SV_MODEL_INFO");
           });
-          let isDefaultStyleSelectDialogOpen = false;
-          const characterInfos = store.state.characterInfos;
-          if (characterInfos == undefined) throw new Error();
-          for (const info of characterInfos) {
-            isDefaultStyleSelectDialogOpen ||=
-              info.metas.styles.length > 1 &&
-              (await store.dispatch("IS_UNSET_DEFAULT_STYLE_ID", {
-                speakerUuid: info.metas.speakerUuid,
-              }));
-          }
-          await store.dispatch("IS_DEFAULT_STYLE_SELECT_DIALOG_OPEN", {
-            isDefaultStyleSelectDialogOpen,
-          });
-        });
       } else {
         $q.dialog({
           title: "音声ライブラリのインストールに失敗しました",

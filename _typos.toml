@@ -4,6 +4,7 @@
 [default.extend-identifiers]
 
 [default.extend-words]
+ba="ba" # 7zコマンドの-baオプション
 
 [files]
 extend-exclude = ["yarn.lock", "src/store/project.ts", "*.svg"]

@@ -1,6 +1,9 @@
 <template>
   <div class="character-portrait-wrapper">
     <span class="character-name">{{ characterName }}</span>
+    <span class="character-engine-name" v-if="isMultipleEngine">{{
+      engineName
+    }}</span>
     <img :src="portraitPath" class="character-portrait" />
     <div v-if="isInitializingSpeaker" class="loading">
       <q-spinner color="primary" size="5rem" :thickness="4" />
@@ -19,45 +22,72 @@ export default defineComponent({
     const store = useStore();
 
     const characterInfo = computed(() => {
-      const characterInfos = store.state.characterInfos || [];
       const activeAudioKey: string | undefined = store.getters.ACTIVE_AUDIO_KEY;
       const audioItem = activeAudioKey
         ? store.state.audioItems[activeAudioKey]
         : undefined;
+
+      const engineId = audioItem?.engineId;
       const styleId = audioItem?.styleId;
 
-      return styleId !== undefined
-        ? characterInfos.find((info) =>
-            info.metas.styles.find((style) => style.styleId === styleId)
-          )
-        : undefined;
+      if (
+        engineId === undefined ||
+        styleId === undefined ||
+        !store.state.engineIds.some((id) => id === engineId)
+      )
+        return undefined;
+
+      return store.getters.CHARACTER_INFO(engineId, styleId);
     });
 
-    const characterName = computed(() => {
+    const styleInfo = computed(() => {
       const activeAudioKey = store.getters.ACTIVE_AUDIO_KEY;
+
       const audioItem = activeAudioKey
         ? store.state.audioItems[activeAudioKey]
         : undefined;
+
       const styleId = audioItem?.styleId;
       const style = characterInfo.value?.metas.styles.find(
         (style) => style.styleId === styleId
       );
-      return style?.styleName
-        ? `${characterInfo.value?.metas.speakerName} (${style?.styleName})`
+      return style;
+    });
+
+    const characterName = computed(() => {
+      return styleInfo.value?.styleName
+        ? `${characterInfo.value?.metas.speakerName} (${styleInfo.value?.styleName})`
         : characterInfo.value?.metas.speakerName;
     });
 
-    const portraitPath = computed(() => characterInfo.value?.portraitPath);
+    const engineName = computed(() => {
+      const activeAudioKey = store.getters.ACTIVE_AUDIO_KEY;
+      const audioItem = activeAudioKey
+        ? store.state.audioItems[activeAudioKey]
+        : undefined;
+      const engineId = audioItem?.engineId ?? store.state.engineIds[0];
+      const engineManifest = store.state.engineManifests[engineId];
+      const engineInfo = store.state.engineInfos[engineId];
+      return engineManifest ? engineManifest.brandName : engineInfo.name;
+    });
+
+    const portraitPath = computed(
+      () => styleInfo.value?.portraitPath || characterInfo.value?.portraitPath
+    );
 
     const isInitializingSpeaker = computed(() => {
       const activeAudioKey = store.getters.ACTIVE_AUDIO_KEY;
       return store.state.audioKeyInitializingSpeaker === activeAudioKey;
     });
 
+    const isMultipleEngine = computed(() => store.state.engineIds.length > 1);
+
     return {
       characterName,
+      engineName,
       portraitPath,
       isInitializingSpeaker,
+      isMultipleEngine,
     };
   },
 });
@@ -75,6 +105,19 @@ export default defineComponent({
     rgba(colors.$background-rgb, 0.5) 75%,
     transparent 100%
   );
+  overflow-wrap: anywhere;
+}
+
+.character-engine-name {
+  position: absolute;
+  padding: 1px 24px 1px 8px;
+  background-image: linear-gradient(
+    90deg,
+    rgba(colors.$background-rgb, 0.5) 0%,
+    rgba(colors.$background-rgb, 0.5) 75%,
+    transparent 100%
+  );
+  bottom: 0;
   overflow-wrap: anywhere;
 }
 
