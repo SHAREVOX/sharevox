@@ -91,7 +91,7 @@ jobs:
             sed_name: gsed
             os: macos-11
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ github.event.inputs.code_signing == 'true' && startsWith(matrix.os, 'windows') && 'self-hosted' || matrix.os }}
     steps:
       - uses: actions/checkout@v3
 
@@ -220,16 +220,16 @@ jobs:
 
       # build electronでコード署名するには環境変数を指定が必要だけど、
       # コード署名しない場合に環境変数を定義するとエラーになるので、動的に環境変数を足す
-      - name: Define Code Signing Envs
-        if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
-        shell: bash
-        run: |
-          # 複数行の文字列を環境変数に代入
-          echo 'CSC_LINK<<EOF' >> $GITHUB_ENV
-          echo "${{ secrets.CERT_BASE64 }}" >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-
-          echo 'CSC_KEY_PASSWORD=${{ secrets.CERT_PASSWORD }}' >> $GITHUB_ENV
+      # - name: Define Code Signing Envs
+      #   if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
+      #   shell: bash
+      #   run: |
+      #     # 複数行の文字列を環境変数に代入
+      #     echo 'CSC_LINK<<EOF' >> $GITHUB_ENV
+      #     echo "${{ secrets.CERT_BASE64 }}" >> $GITHUB_ENV
+      #     echo 'EOF' >> $GITHUB_ENV
+      #
+      #     echo 'CSC_KEY_PASSWORD=${{ secrets.CERT_PASSWORD }}' >> $GITHUB_ENV
 
       # Build result will be exported to ${{ matrix.artifact_path }}
       - name: Build Electron
@@ -241,12 +241,12 @@ jobs:
           MACOS_ARTIFACT_NAME: ${{ matrix.macos_artifact_name }}
         run: yarn electron:build_pnever -- --dir
 
-      - name: Reset Code Signing Envs
-        if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
-        shell: bash
-        run: |
-          echo 'CSC_LINK=' >> $GITHUB_ENV
-          echo 'CSC_KEY_PASSWORD=' >> $GITHUB_ENV
+      # - name: Reset Code Signing Envs
+      #   if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
+      #   shell: bash
+      #   run: |
+      #     echo 'CSC_LINK=' >> $GITHUB_ENV
+      #     echo 'CSC_KEY_PASSWORD=' >> $GITHUB_ENV
 
       - name: Upload NoEngine Prepackage
         uses: actions/upload-artifact@v3
@@ -560,7 +560,7 @@ jobs:
             sed_name: gsed
             os: macos-11
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ github.event.inputs.code_signing == 'true' && startsWith(matrix.os, 'windows') && 'self-hosted' || matrix.os }}
     steps:
       - uses: actions/checkout@v3
 
@@ -668,16 +668,16 @@ jobs:
 
       # build electronでコード署名するには環境変数を指定が必要だけど、
       # コード署名しない場合に環境変数を定義するとエラーになるので、動的に環境変数を足す
-      - name: Define Code Signing Envs
-        if: endsWith(matrix.artifact_name, '-nsis-web') && github.event.inputs.code_signing == 'true'
-        shell: bash
-        run: |
-          # 複数行の文字列を環境変数に代入
-          echo 'CSC_LINK<<EOF' >> $GITHUB_ENV
-          echo "${{ secrets.CERT_BASE64 }}" >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-
-          echo 'CSC_KEY_PASSWORD=${{ secrets.CERT_PASSWORD }}' >> $GITHUB_ENV
+      # - name: Define Code Signing Envs
+      #   if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
+      #   shell: bash
+      #   run: |
+      #     # 複数行の文字列を環境変数に代入
+      #     echo 'CSC_LINK<<EOF' >> $GITHUB_ENV
+      #     echo "${{ secrets.CERT_BASE64 }}" >> $GITHUB_ENV
+      #     echo 'EOF' >> $GITHUB_ENV
+      #
+      #     echo 'CSC_KEY_PASSWORD=${{ secrets.CERT_PASSWORD }}' >> $GITHUB_ENV
 
       # NOTE: prepackage can be removed before splitting nsis-web archive
       - name: Build Electron
@@ -696,12 +696,12 @@ jobs:
           MACOS_ARTIFACT_NAME: ${{ matrix.macos_artifact_name }}
         run: yarn electron:build_pnever -- --prepackaged "prepackage/SHAREVOX.app"
 
-      - name: Reset Code Signing Envs
-        if: endsWith(matrix.artifact_name, '-nsis-web') && github.event.inputs.code_signing == 'true'
-        shell: bash
-        run: |
-          echo 'CSC_LINK=' >> $GITHUB_ENV
-          echo 'CSC_KEY_PASSWORD=' >> $GITHUB_ENV
+      # - name: Reset Code Signing Envs
+      #   if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
+      #   shell: bash
+      #   run: |
+      #     echo 'CSC_LINK=' >> $GITHUB_ENV
+      #     echo 'CSC_KEY_PASSWORD=' >> $GITHUB_ENV
 
       - name: Show disk space (debug info)
         shell: bash
