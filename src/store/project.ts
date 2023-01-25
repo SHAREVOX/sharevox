@@ -310,7 +310,7 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
 
           if (!filePath) {
             // if new project: use generated name
-            defaultPath = buildProjectFileName(context.state, "vvproj");
+            defaultPath = buildProjectFileName(context.state, "svproj");
           } else {
             // if saveAs for existing project: use current project path
             defaultPath = filePath;
