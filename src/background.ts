@@ -32,6 +32,7 @@ import {
   defaultHotkeySettings,
   isMac,
   defaultToolbarButtonSetting,
+  engineSetting,
 } from "./type/preload";
 
 import log from "electron-log";
@@ -40,7 +41,7 @@ import windowStateKeeper from "electron-window-state";
 import zodToJsonSchema from "zod-to-json-schema";
 
 import EngineManager from "./background/engineManager";
-import VvppManager from "./background/vvppManager";
+import VvppManager, { isVvppFile } from "./background/vvppManager";
 import configMigration014 from "./background/configMigration014";
 
 type SingleInstanceLockData = {
@@ -131,9 +132,33 @@ const store = new Store<ElectronStoreType>({
       }
     },
     ">=0.14": (store) => {
-      if (store.get("savingSetting").outputSamplingRate == 24000) {
-        store.set("savingSetting.outputSamplingRate", "engineDefault");
-      }
+      // FIXME: できるならEngineManagerからEnginIDを取得したい
+      const engineId = JSON.parse(process.env.DEFAULT_ENGINE_INFOS ?? "[]")[0]
+        .uuid;
+      if (engineId == undefined)
+        throw new Error("DEFAULT_ENGINE_INFOS[0].uuid == undefined");
+      const prevDefaultStyleIds = store.get("defaultStyleIds");
+      store.set(
+        "defaultStyleIds",
+        prevDefaultStyleIds.map((defaultStyle) => ({
+          engineId: engineId,
+          speakerUuid: defaultStyle.speakerUuid,
+          defaultStyleId: defaultStyle.defaultStyleId,
+        }))
+      );
+
+      const outputSamplingRate: number =
+        // @ts-expect-error 削除されたパラメータ。
+        store.get("savingSetting").outputSamplingRate;
+      store.set(`engineSettings.${engineId}`, {
+        useGpu: store.get("useGpu"),
+        outputSamplingRate:
+          outputSamplingRate === 24000 ? "engineDefault" : outputSamplingRate,
+      });
+      // @ts-expect-error 削除されたパラメータ。
+      store.delete("savingSetting.outputSamplingRate");
+      // @ts-expect-error 削除されたパラメータ。
+      store.delete("useGpu");
     },
   },
 });
@@ -176,6 +201,69 @@ async function installVvppEngine(vvppPath: string) {
     log.error(`Failed to install ${vvppPath}, ${e}`);
     return false;
   }
+}
+
+/**
+ * 危険性を案内してからVVPPエンジンをインストールする。
+ * FIXME: こちらで案内せず、GUIでのインストール側に合流させる
+ */
+async function installVvppEngineWithWarning({
+  vvppPath,
+  restartNeeded,
+}: {
+  vvppPath: string;
+  restartNeeded: boolean;
+}) {
+  const result = dialog.showMessageBoxSync(win, {
+    type: "warning",
+    title: "エンジン追加の確認",
+    message: `この操作はコンピュータに損害を与える可能性があります。エンジンの配布元が信頼できない場合は追加しないでください。`,
+    buttons: ["追加", "キャンセル"],
+    noLink: true,
+    cancelId: 1,
+  });
+  if (result == 1) {
+    return;
+  }
+
+  await installVvppEngine(vvppPath);
+
+  if (restartNeeded) {
+    dialog
+      .showMessageBox(win, {
+        type: "info",
+        title: "再起動が必要です",
+        message:
+          "VVPPファイルを読み込みました。反映には再起動が必要です。今すぐ再起動しますか？",
+        buttons: ["再起動", "キャンセル"],
+        noLink: true,
+        cancelId: 1,
+      })
+      .then((result) => {
+        if (result.response === 0) {
+          appState.willRestart = true;
+          app.quit();
+        }
+      });
+  }
+}
+
+/**
+ * マルチエンジン機能が有効だった場合はtrueを返す。
+ * 無効だった場合はダイアログを表示してfalseを返す。
+ */
+function checkMultiEngineEnabled(): boolean {
+  const enabled = store.get("experimentalSetting").enableMultiEngine;
+  if (!enabled) {
+    dialog.showMessageBoxSync(win, {
+      type: "info",
+      title: "マルチエンジン機能が無効です",
+      message: `マルチエンジン機能が無効です。vvppファイルを使用するには設定からマルチエンジン機能を有効にしてください。`,
+      buttons: ["OK"],
+      noLink: true,
+    });
+  }
+  return enabled;
 }
 
 /**
@@ -304,7 +392,7 @@ migrateHotkeySettings();
 const appState = {
   willQuit: false,
   willRestart: false,
-  isSafeMode: false,
+  isMultiEngineOffMode: false,
 };
 let filePathOnMac: string | undefined = undefined;
 // create window
@@ -333,20 +421,47 @@ async function createWindow() {
     icon: path.join(__static, "icon.png"),
   });
 
+  let projectFilePath: string | undefined = "";
+  let svlibFilePath: string | undefined = "";
+  if (isMac) {
+    if (filePathOnMac) {
+      if (filePathOnMac.endsWith(".svproj")) {
+        projectFilePath = encodeURI(filePathOnMac);
+      } else if (filePathOnMac.endsWith(".svlib")) {
+        svlibFilePath = encodeURI(filePathOnMac);
+      }
+      filePathOnMac = undefined;
+    }
+  } else {
+    if (process.argv.length >= 2) {
+      const filePath = process.argv[1];
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        if (filePath.endsWith(".svproj")) {
+          projectFilePath = encodeURI(filePath);
+        } else if (filePath.endsWith(".svlib")) {
+          svlibFilePath = encodeURI(filePath);
+        }
+      }
+    }
+  }
+
+  const parameter =
+    "#/home?isMultiEngineOffMode=" +
+    appState.isMultiEngineOffMode +
+    "&projectFilePath=" +
+    projectFilePath +
+    "&svlibFilePath=" +
+    svlibFilePath;
+
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     await win.loadURL(
-      (process.env.WEBPACK_DEV_SERVER_URL as string) +
-        "#/home?isSafeMode=" +
-        appState.isSafeMode
+      (process.env.WEBPACK_DEV_SERVER_URL as string) + parameter
     );
   } else {
     createProtocol("app");
-    win.loadURL("app://./index.html#/home?isSafeMode=" + appState.isSafeMode);
+    win.loadURL("app://./index.html" + parameter);
   }
   if (isDevelopment) win.webContents.openDevTools();
-
-  // Macではdarkモードかつウィンドウが非アクティブのときに閉じるボタンなどが見えなくなるので、lightテーマに固定
-  if (isMac) nativeTheme.themeSource = "light";
 
   win.on("maximize", () => win.webContents.send("DETECT_MAXIMIZED"));
   win.on("unmaximize", () => win.webContents.send("DETECT_UNMAXIMIZED"));
@@ -377,40 +492,23 @@ async function createWindow() {
     });
   });
 
-  win.webContents.once("did-finish-load", () => {
-    if (isMac) {
-      if (filePathOnMac) {
-        if (filePathOnMac.endsWith(".svproj")) {
-          ipcMainSend(win, "LOAD_PROJECT_FILE", {
-            filePath: filePathOnMac,
-            confirm: false,
-          });
-        } else if (filePathOnMac.endsWith(".svlib")) {
-          ipcMainSend(win, "IMPORT_SV_MODEL_INFO", {
-            filePath: filePathOnMac,
-            confirm: false,
-          });
-        }
-        filePathOnMac = undefined;
-      }
-    } else {
-      if (process.argv.length >= 2) {
-        const filePath = process.argv[1];
-        if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-          if (filePath.endsWith(".vvproj")) {
-            ipcMainSend(win, "LOAD_PROJECT_FILE", { filePath, confirm: false });
-          } else if (filePath.endsWith(".svlib")) {
-            ipcMainSend(win, "IMPORT_SV_MODEL_INFO", {
-              filePath,
-              confirm: false,
-            });
-          }
-        }
-      }
-    }
-  });
-
   mainWindowState.manage(win);
+}
+
+// UI処理を開始。その他の準備が完了した後に呼ばれる。
+async function start() {
+  const engineInfos = engineManager.fetchEngineInfos();
+  const engineSettings = store.get("engineSettings");
+  for (const engineInfo of engineInfos) {
+    if (!engineSettings[engineInfo.uuid]) {
+      // 空オブジェクトをパースさせることで、デフォルト値を取得する
+      engineSettings[engineInfo.uuid] = engineSetting.parse({});
+    }
+  }
+  store.set("engineSettings", engineSettings);
+
+  await createWindow();
+  await engineManager.runEngineAll(win);
 }
 
 const menuTemplateForMac: Electron.MenuItemConstructorOptions[] = [
@@ -512,7 +610,9 @@ ipcMainHandle("SHOW_VVPP_OPEN_DIALOG", async (_, { title, defaultPath }) => {
   const result = await dialog.showOpenDialog(win, {
     title,
     defaultPath,
-    filters: [{ name: "VOICEVOX Plugin Package", extensions: ["vvpp"] }],
+    filters: [
+      { name: "VOICEVOX Plugin Package", extensions: ["vvpp", "vvppp"] },
+    ],
     properties: ["openFile", "createDirectory", "treatPackageAsDirectory"],
   });
   return result.filePaths[0];
@@ -727,6 +827,14 @@ ipcMainHandle("SET_SETTING", (_, key, newValue) => {
   return store.get(key);
 });
 
+ipcMainHandle("SET_ENGINE_SETTING", (_, engineId, engineSetting) => {
+  store.set(`engineSettings.${engineId}`, engineSetting);
+});
+
+ipcMainHandle("SET_NATIVE_THEME", (_, source) => {
+  nativeTheme.themeSource = source;
+});
+
 ipcMainHandle("INSTALL_VVPP_ENGINE", async (_, path: string) => {
   return await installVvppEngine(path);
 });
@@ -739,9 +847,9 @@ ipcMainHandle("VALIDATE_ENGINE_DIR", (_, { engineDir }) => {
   return engineManager.validateEngineDir(engineDir);
 });
 
-ipcMainHandle("RESTART_APP", async (_, { isSafeMode }) => {
+ipcMainHandle("RESTART_APP", async (_, { isMultiEngineOffMode }) => {
   appState.willRestart = true;
-  appState.isSafeMode = isSafeMode;
+  appState.isMultiEngineOffMode = isMultiEngineOffMode;
   win.close();
 });
 
@@ -817,7 +925,7 @@ app.on("before-quit", async (event) => {
       appState.willRestart = false;
       appState.willQuit = false;
 
-      createWindow().then(() => engineManager.runEngineAll(win));
+      start();
     } else {
       log.info("Post engine kill process done. Now quit app");
     }
@@ -859,10 +967,6 @@ app.on("before-quit", async (event) => {
   );
   app.quit();
   return;
-});
-
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
 app.once("will-finish-launching", () => {
@@ -908,11 +1012,18 @@ app.on("ready", async () => {
     return;
   }
 
-  if (filePath?.endsWith(".vvpp")) {
-    await installVvppEngine(filePath);
+  if (filePath && isVvppFile(filePath)) {
+    log.info(`vvpp file install: ${filePath}`);
+    // FIXME: GUI側に合流させる
+    if (checkMultiEngineEnabled()) {
+      await installVvppEngineWithWarning({
+        vvppPath: filePath,
+        restartNeeded: false,
+      });
+    }
   }
 
-  createWindow().then(() => engineManager.runEngineAll(win));
+  start();
 });
 
 // 他のプロセスが起動したとき、`requestSingleInstanceLock`経由で`rawData`が送信される。
@@ -920,27 +1031,17 @@ app.on("second-instance", async (event, argv, workDir, rawData) => {
   const data = rawData as SingleInstanceLockData;
   if (!data.filePath) {
     log.info("No file path sent");
-  } else if (data.filePath.endsWith(".vvpp")) {
+  } else if (isVvppFile(data.filePath)) {
     log.info("Second instance launched with vvpp file");
-    await installVvppEngine(data.filePath);
-    dialog
-      .showMessageBox(win, {
-        type: "info",
-        title: "再起動が必要です",
-        message:
-          "VVPPファイルを読み込みました。反映には再起動が必要です。今すぐ再起動しますか？",
-        buttons: ["再起動", "キャンセル"],
-        noLink: true,
-        cancelId: 1,
-      })
-      .then((result) => {
-        if (result.response === 0) {
-          appState.willRestart = true;
-          app.quit();
-        }
+    // FIXME: GUI側に合流させる
+    if (checkMultiEngineEnabled()) {
+      await installVvppEngineWithWarning({
+        vvppPath: data.filePath,
+        restartNeeded: true,
       });
-  } else if (data.filePath.endsWith(".vvproj")) {
-    log.info("Second instance launched with vvproj file");
+    }
+  } else if (data.filePath.endsWith(".svproj")) {
+    log.info("Second instance launched with svproj file");
     ipcMainSend(win, "LOAD_PROJECT_FILE", {
       filePath: data.filePath,
       confirm: true,
