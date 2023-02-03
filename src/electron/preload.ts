@@ -228,6 +228,10 @@ const api: Sandbox = {
     return await ipcRendererInvoke("GET_DEFAULT_TOOLBAR_SETTING");
   },
 
+  setNativeTheme: (source) => {
+    ipcRenderer.invoke("SET_NATIVE_THEME", source);
+  },
+
   theme: (newData) => {
     return ipcRenderer.invoke("THEME", { newData });
   },
@@ -257,6 +261,14 @@ const api: Sandbox = {
     )) as typeof newValue;
   },
 
+  setEngineSetting: async (engineId, engineSetting) => {
+    return await ipcRendererInvoke(
+      "SET_ENGINE_SETTING",
+      engineId,
+      engineSetting
+    );
+  },
+
   installVvppEngine: async (filePath) => {
     return await ipcRendererInvoke("INSTALL_VVPP_ENGINE", filePath);
   },
@@ -269,8 +281,8 @@ const api: Sandbox = {
     return await ipcRendererInvoke("VALIDATE_ENGINE_DIR", { engineDir });
   },
 
-  restartApp: ({ isSafeMode }: { isSafeMode: boolean }) => {
-    ipcRendererInvoke("RESTART_APP", { isSafeMode });
+  restartApp: ({ isMultiEngineOffMode }: { isMultiEngineOffMode: boolean }) => {
+    ipcRendererInvoke("RESTART_APP", { isMultiEngineOffMode });
   },
 };
 

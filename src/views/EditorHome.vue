@@ -28,10 +28,10 @@
               エンジン起動に時間がかかっています。<br />
               <q-btn
                 outline
-                @click="restartAppWithSafeMode"
+                @click="restartAppWithMultiEngineOffMode"
                 v-if="isMultipleEngine"
               >
-                セーフモードで起動する</q-btn
+                マルチエンジンをオフにして再起動する</q-btn
               >
               <q-btn outline @click="openFaq" v-else>FAQを見る</q-btn>
             </template>
@@ -154,7 +154,7 @@
     :characterInfos="orderedAllCharacterInfos"
     v-model="isCharacterOrderDialogOpenComputed"
   />
-  <default-style-select-dialog
+  <default-style-list-dialog
     v-if="orderedAllCharacterInfos.length > 0"
     :characterInfos="orderedAllCharacterInfos"
     v-model="isDefaultStyleSelectDialogOpenComputed"
@@ -188,7 +188,7 @@ import SettingDialog from "@/components/SettingDialog.vue";
 import HotkeySettingDialog from "@/components/HotkeySettingDialog.vue";
 import HeaderBarCustomDialog from "@/components/HeaderBarCustomDialog.vue";
 import CharacterPortrait from "@/components/CharacterPortrait.vue";
-import DefaultStyleSelectDialog from "@/components/DefaultStyleSelectDialog.vue";
+import DefaultStyleListDialog from "@/components/DefaultStyleListDialog.vue";
 import CharacterOrderDialog from "@/components/CharacterOrderDialog.vue";
 import AcceptRetrieveTelemetryDialog from "@/components/AcceptRetrieveTelemetryDialog.vue";
 import AcceptTermsDialog from "@/components/AcceptTermsDialog.vue";
@@ -210,6 +210,11 @@ import cloneDeep from "clone-deep";
 export default defineComponent({
   name: "EditorHome",
 
+  props: {
+    projectFilePath: { type: String },
+    svlibFilePath: { type: String },
+  },
+
   components: {
     draggable,
     MenuBar,
@@ -222,7 +227,7 @@ export default defineComponent({
     HotkeySettingDialog,
     HeaderBarCustomDialog,
     CharacterPortrait,
-    DefaultStyleSelectDialog,
+    DefaultStyleListDialog,
     CharacterOrderDialog,
     AcceptRetrieveTelemetryDialog,
     AcceptTermsDialog,
@@ -232,7 +237,7 @@ export default defineComponent({
     ProgressDialog,
   },
 
-  setup() {
+  setup(props) {
     const store = useStore();
     const $q = useQuasar();
 
@@ -525,7 +530,7 @@ export default defineComponent({
       await store.dispatch("GET_ENGINE_INFOS");
 
       let engineIds: string[];
-      if (store.state.isSafeMode) {
+      if (store.state.isMultiEngineOffMode) {
         // デフォルトエンジンだけを含める
         const main = Object.values(store.state.engineInfos).find(
           (engine) => engine.type === "default"
@@ -537,42 +542,45 @@ export default defineComponent({
       } else {
         engineIds = store.state.engineIds;
       }
-      await Promise.all(
-        engineIds.map(async (engineId) => {
-          await store.dispatch("START_WAITING_ENGINE", { engineId });
-
-          await store.dispatch("FETCH_AND_SET_ENGINE_MANIFEST", { engineId });
-
-          await store.dispatch("LOAD_CHARACTER", { engineId });
-        })
-      );
       await store.dispatch("LOAD_USER_CHARACTER_ORDER");
-      await store.dispatch("LOAD_DEFAULT_STYLE_IDS");
+      await store.dispatch("POST_ENGINE_START", {
+        engineIds,
+      });
 
       // 辞書を同期
       await store.dispatch("SYNC_ALL_USER_DICT");
 
-      // 新キャラが追加されている場合はキャラ並び替えダイアログを表示
-      const newCharacters = await store.dispatch("GET_NEW_CHARACTERS");
-      isCharacterOrderDialogOpenComputed.value = newCharacters.length > 0;
-
-      // 最初のAudioCellを作成
-      const audioItem: AudioItem = await store.dispatch(
-        "GENERATE_AUDIO_ITEM",
-        {}
-      );
-      const newAudioKey = await store.dispatch("REGISTER_AUDIO_ITEM", {
-        audioItem,
-      });
-      focusCell({ audioKey: newAudioKey });
-
-      // 最初の話者を初期化
-      if (audioItem.engineId != undefined && audioItem.styleId != undefined) {
-        store.dispatch("SETUP_SPEAKER", {
-          audioKey: newAudioKey,
-          engineId: audioItem.engineId,
-          styleId: audioItem.styleId,
+      // プロジェクトファイルが指定されていればロード
+      let projectFileLoaded = false;
+      if (props.projectFilePath != undefined && props.projectFilePath !== "") {
+        projectFileLoaded = await store.dispatch("LOAD_PROJECT_FILE", {
+          filePath: props.projectFilePath,
         });
+      }
+
+      // svlib(SHAREVOX音声ライブラリ)が指定されていればロード
+      if (props.svlibFilePath != undefined && props.svlibFilePath !== "") {
+        await store.dispatch("IMPORT_SV_MODEL_INFO", {
+          filePath: props.svlibFilePath,
+        });
+      }
+
+      if (!projectFileLoaded) {
+        // 最初のAudioCellを作成
+        const audioItem = await store.dispatch("GENERATE_AUDIO_ITEM", {});
+        const newAudioKey = await store.dispatch("REGISTER_AUDIO_ITEM", {
+          audioItem,
+        });
+        focusCell({ audioKey: newAudioKey });
+
+        // 最初の話者を初期化
+        if (audioItem.engineId != undefined && audioItem.styleId != undefined) {
+          store.dispatch("SETUP_SPEAKER", {
+            audioKey: newAudioKey,
+            engineId: audioItem.engineId,
+            styleId: audioItem.styleId,
+          });
+        }
       }
 
       // ショートカットキーの設定
@@ -627,13 +635,13 @@ export default defineComponent({
         isEngineWaitingLong.value = false;
         engineTimer = window.setTimeout(() => {
           isEngineWaitingLong.value = true;
-        }, 60000);
+        }, 30000);
       } else {
         isEngineWaitingLong.value = false;
       }
     });
-    const restartAppWithSafeMode = () => {
-      store.dispatch("RESTART_APP", { isSafeMode: true });
+    const restartAppWithMultiEngineOffMode = () => {
+      store.dispatch("RESTART_APP", { isMultiEngineOffMode: true });
     };
 
     const openFaq = () => {
@@ -808,7 +816,7 @@ export default defineComponent({
       allEngineState,
       isEngineWaitingLong,
       isMultipleEngine,
-      restartAppWithSafeMode,
+      restartAppWithMultiEngineOffMode,
       openFaq,
       isHelpDialogOpenComputed,
       isSettingDialogOpenComputed,
