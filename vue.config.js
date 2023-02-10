@@ -34,7 +34,7 @@ module.exports = {
             name: "SHAREVOX Project file",
             description: "SHAREVOX Project file",
             role: "Editor",
-            icon: "icons/vvproj." + (isMac ? "icns" : "ico"),
+            // icon: "icons/vvproj." + (isMac ? "icns" : "ico"),
           },
           {
             ext: "vvpp",
