@@ -7,10 +7,12 @@ models/DownloadableLibrary.ts
 models/EngineManifest.ts
 models/HTTPValidationError.ts
 models/LicenseInfo.ts
+models/ModelConfig.ts
 models/Mora.ts
 models/MorphableTargetInfo.ts
 models/ParseKanaBadRequest.ts
 models/Preset.ts
+models/SVModelInfo.ts
 models/Speaker.ts
 models/SpeakerInfo.ts
 models/SpeakerStyle.ts
