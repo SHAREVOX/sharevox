@@ -34,7 +34,7 @@ module.exports = {
             name: "SHAREVOX Project file",
             description: "SHAREVOX Project file",
             role: "Editor",
-            icon: "icons/vvproj." + (isMac ? "icns" : "ico"),
+            // icon: "icons/vvproj." + (isMac ? "icns" : "ico"),
           },
           {
             ext: "vvpp",
@@ -82,6 +82,7 @@ module.exports = {
               arch: ["x64"],
             },
           ],
+          sign: path.resolve(__dirname, "build", "codesign.js"),
         },
         directories: {
           buildResources: "build",
