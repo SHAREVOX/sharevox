@@ -228,7 +228,13 @@ jobs:
           MACOS_ARTIFACT_NAME: ${{ matrix.macos_artifact_name }}
           # https://github.com/electron-userland/electron-builder/issues/3179
           USE_HARD_LINKS: false
-        run: yarn electron:build_dir
+        shell: bash
+        run: |
+          if [[ ${{ matrix.os }} == windows-* ]] && [[ ${{ github.event.inputs.code_signing }} == "true" ]]; then
+            yarn electron:build_dir
+          else
+            CERT_SKIP=true yarn electron:build_dir
+          fi
 
       # - name: Reset Code Signing Envs
       #   if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
@@ -378,8 +384,13 @@ jobs:
           NSIS_WEB_ARTIFACT_NAME: ${{ matrix.nsis_web_artifact_name }}
           LINUX_ARTIFACT_NAME: ${{ matrix.linux_artifact_name }}
           LINUX_EXECUTABLE_NAME: ${{ matrix.linux_executable_name }}
+        shell: bash
         run: |
-          PREPACKAGED="prepackage" yarn electron:build_pnever_prepackaged
+          if [[ ${{ matrix.os }} == windows-* ]] && [[ ${{ github.event.inputs.code_signing }} == "true" ]]; then
+            PREPACKAGED="prepackage" yarn electron:build_pnever_prepackaged
+          else
+            CERT_SKIP=true PREPACKAGED="prepackage" yarn electron:build_pnever_prepackaged
+          fi
 
       - name: Build Electron (for macOS)
         if: endsWith(matrix.installer_artifact_name, '-dmg') # macOS
