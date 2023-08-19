@@ -3,7 +3,7 @@
     <div>
       <div class="side">
         <div class="detail-selector">
-          <q-tabs dense vertical class="text-display" v-model="selectedDetail">
+          <q-tabs v-model="selectedDetail" dense vertical class="text-display">
             <q-tab name="accent" label="ｱｸｾﾝﾄ" />
             <q-tab
               name="pitch"
@@ -37,17 +37,17 @@
               color="primary-light"
               text-color="display-on-primary"
               icon="stop"
-              @click="stop"
               :disable="nowGenerating"
+              @click="stop"
             ></q-btn>
           </template>
         </div>
       </div>
 
-      <div class="overflow-hidden-y accent-phrase-table" ref="audioDetail">
+      <div ref="audioDetail" class="overflow-hidden-y accent-phrase-table">
         <tool-tip
-          tip-key="tweakableSliderByScroll"
           v-if="selectedDetail === 'pitch'"
+          tip-key="tweakableSliderByScroll"
           class="tip-tweakable-slider-by-scroll"
         >
           <p>
@@ -55,27 +55,29 @@
             スライダーを微調整できます。
           </p>
           ホイール: ±0.1<br />
-          Ctrl + ホイール: ±0.01<br />
-          Alt + ホイール: 一括調整
+          <span v-if="isMac">Command</span><span v-else>Ctrl</span> + ホイール:
+          ±0.01<br />
+          <span v-if="isMac">Option</span><span v-else>Alt</span> + ホイール:
+          一括調整
         </tool-tip>
         <div
           v-for="(accentPhrase, accentPhraseIndex) in accentPhrases"
           :key="accentPhraseIndex"
+          :ref="addAccentPhraseElem"
           class="mora-table"
           :class="[
             accentPhraseIndex === activePoint && 'mora-table-focus',
             uiLocked || 'mora-table-hover',
           ]"
           @click="setPlayAndStartPoint(accentPhraseIndex)"
-          :ref="addAccentPhraseElem"
         >
           <template v-if="selectedDetail === 'accent'">
             <audio-accent
-              :accentPhraseIndex="accentPhraseIndex"
-              :accentPhrase="accentPhrase"
-              :uiLocked="uiLocked"
-              :shiftKeyFlag="shiftKeyFlag"
-              @changeAccent="changeAccent"
+              :accent-phrase-index="accentPhraseIndex"
+              :accent-phrase="accentPhrase"
+              :ui-locked="uiLocked"
+              :shift-key-flag="shiftKeyFlag"
+              :on-change-accent="changeAccent"
             />
           </template>
           <template v-if="selectedDetail === 'pitch'">
@@ -87,17 +89,17 @@
             >
               <!-- div for input width -->
               <audio-parameter
-                :moraIndex="moraIndex"
-                :accentPhraseIndex="accentPhraseIndex"
+                :mora-index="moraIndex"
+                :accent-phrase-index="accentPhraseIndex"
                 :value="mora.pitch"
-                :uiLocked="uiLocked"
+                :ui-locked="uiLocked"
                 :min="minPitch"
                 :max="maxPitch"
                 :disable="mora.pitch == 0.0"
                 :type="'pitch'"
                 :clip="false"
-                :shiftKeyFlag="shiftKeyFlag"
-                @changeValue="changeMoraData"
+                :shift-key-flag="shiftKeyFlag"
+                @change-value="changeMoraData"
               />
             </div>
             <div v-if="accentPhrase.pauseMora" />
@@ -111,56 +113,56 @@
             >
               <!-- consonant length -->
               <audio-parameter
-                v-if="mora.consonant"
-                :moraIndex="moraIndex"
-                :accentPhraseIndex="accentPhraseIndex"
+                v-if="mora.consonant && mora.consonantLength != undefined"
+                :mora-index="moraIndex"
+                :accent-phrase-index="accentPhraseIndex"
                 :value="mora.consonantLength"
-                :uiLocked="uiLocked"
+                :ui-locked="uiLocked"
                 :min="minMoraLength"
                 :max="maxMoraLength"
                 :step="0.001"
                 :type="'consonant'"
                 :clip="true"
-                :shiftKeyFlag="shiftKeyFlag"
-                @changeValue="changeMoraData"
-                @mouseOver="handleLengthHoverText"
+                :shift-key-flag="shiftKeyFlag"
+                @change-value="changeMoraData"
+                @mouse-over="handleLengthHoverText"
               />
               <!-- vowel length -->
               <audio-parameter
-                :moraIndex="moraIndex"
-                :accentPhraseIndex="accentPhraseIndex"
+                :mora-index="moraIndex"
+                :accent-phrase-index="accentPhraseIndex"
                 :value="mora.vowelLength"
-                :uiLocked="uiLocked"
+                :ui-locked="uiLocked"
                 :min="minMoraLength"
                 :max="maxMoraLength"
                 :step="0.001"
                 :type="'vowel'"
                 :clip="mora.consonant ? true : false"
-                :shiftKeyFlag="shiftKeyFlag"
-                @changeValue="changeMoraData"
-                @mouseOver="handleLengthHoverText"
+                :shift-key-flag="shiftKeyFlag"
+                @change-value="changeMoraData"
+                @mouse-over="handleLengthHoverText"
               />
             </div>
           </template>
           <div
-            class="q-mb-sm pitch-cell"
             v-if="accentPhrase.pauseMora && selectedDetail == 'length'"
+            class="q-mb-sm pitch-cell"
             :style="{
               'grid-column': `${accentPhrase.moras.length * 2 + 1} / span 1`,
             }"
           >
             <!-- pause length -->
             <audio-parameter
-              :moraIndex="accentPhrase.moras.length"
-              :accentPhraseIndex="accentPhraseIndex"
+              :mora-index="accentPhrase.moras.length"
+              :accent-phrase-index="accentPhraseIndex"
               :value="accentPhrase.pauseMora.vowelLength"
-              :uiLocked="uiLocked"
+              :ui-locked="uiLocked"
               :min="0"
               :max="1.0"
               :step="0.01"
               :type="'pause'"
-              :shiftKeyFlag="shiftKeyFlag"
-              @changeValue="changeMoraData"
+              :shift-key-flag="shiftKeyFlag"
+              @change-value="changeMoraData"
             />
           </div>
           <template
@@ -191,11 +193,11 @@
               </span>
               <q-popup-edit
                 v-if="selectedDetail == 'accent' && !uiLocked"
+                v-slot="scope"
                 :model-value="pronunciationByPhrase[accentPhraseIndex]"
                 auto-save
                 transition-show="none"
                 transition-hide="none"
-                v-slot="scope"
                 @save="handleChangePronounce($event, accentPhraseIndex)"
               >
                 <q-input
@@ -213,12 +215,9 @@
             </div>
             <div
               v-if="
-                accentPhraseIndex < accentPhrases.length - 1 ||
-                moraIndex < accentPhrase.moras.length - 1
-              "
-              @click.stop="
-                uiLocked ||
-                  toggleAccentPhraseSplit(accentPhraseIndex, false, moraIndex)
+                accentPhrases != undefined &&
+                (accentPhraseIndex < accentPhrases.length - 1 ||
+                  moraIndex < accentPhrase.moras.length - 1)
               "
               :class="[
                 'splitter-cell',
@@ -230,6 +229,10 @@
                 },
               ]"
               :style="{ 'grid-column': `${moraIndex * 2 + 2} / span 1` }"
+              @click.stop="
+                uiLocked ||
+                  toggleAccentPhraseSplit(accentPhraseIndex, false, moraIndex)
+              "
             />
           </template>
           <template v-if="accentPhrase.pauseMora">
@@ -239,13 +242,13 @@
               </span>
             </div>
             <div
-              @click.stop="
-                uiLocked || toggleAccentPhraseSplit(accentPhraseIndex, true)
-              "
               class="
                 splitter-cell
                 splitter-cell-be-split
                 splitter-cell-be-split-pause
+              "
+              @click.stop="
+                uiLocked || toggleAccentPhraseSplit(accentPhraseIndex, true)
               "
             />
           </template>
@@ -264,30 +267,37 @@ import {
   onUnmounted,
   reactive,
   ref,
+  VNodeRef,
   watch,
 } from "vue";
-import { useStore } from "@/store";
-import { useQuasar } from "quasar";
 import ToolTip from "./ToolTip.vue";
 import AudioAccent from "./AudioAccent.vue";
 import AudioParameter from "./AudioParameter.vue";
-import { HotkeyAction, HotkeyReturnType, MoraDataType } from "@/type/preload";
+import { useStore } from "@/store";
+import {
+  AudioKey,
+  HotkeyAction,
+  HotkeyReturnType,
+  isMac,
+  MoraDataType,
+} from "@/type/preload";
 import { setHotkeyFunctions } from "@/store/setting";
 import { EngineManifest, Mora } from "@/openapi/models";
 
 const props =
   defineProps<{
-    activeAudioKey: string;
+    activeAudioKey: AudioKey;
   }>();
 
 const store = useStore();
-const $q = useQuasar();
 
 const supportedFeatures = computed(
   () =>
-    (audioItem.value?.engineId &&
-      store.state.engineIds.some((id) => id === audioItem.value.engineId) &&
-      store.state.engineManifests[audioItem.value?.engineId]
+    (audioItem.value?.voice.engineId &&
+      store.state.engineIds.some(
+        (id) => id === audioItem.value.voice.engineId
+      ) &&
+      store.state.engineManifests[audioItem.value.voice.engineId]
         .supportedFeatures) as EngineManifest["supportedFeatures"] | undefined
 );
 
@@ -457,7 +467,7 @@ const changeMoraData = (
     if (type == "pitch") {
       lastPitches.value[accentPhraseIndex][moraIndex] = data;
     }
-    store.dispatch("COMMAND_SET_AUDIO_MORA_DATA", {
+    return store.dispatch("COMMAND_SET_AUDIO_MORA_DATA", {
       audioKey: props.activeAudioKey,
       accentPhraseIndex,
       moraIndex,
@@ -468,7 +478,7 @@ const changeMoraData = (
     if (accentPhrases.value === undefined) {
       throw Error("accentPhrases.value === undefined");
     }
-    store.dispatch("COMMAND_SET_AUDIO_MORA_DATA_ACCENT_PHRASE", {
+    return store.dispatch("COMMAND_SET_AUDIO_MORA_DATA_ACCENT_PHRASE", {
       audioKey: props.activeAudioKey,
       accentPhraseIndex,
       moraIndex,
@@ -492,14 +502,9 @@ const play = async () => {
     } else {
       window.electron.logError(e);
     }
-    $q.dialog({
+    store.dispatch("SHOW_ALERT_DIALOG", {
       title: "再生に失敗しました",
       message: msg ?? "エンジンの再起動をお試しください。",
-      ok: {
-        label: "閉じる",
-        flat: true,
-        textColor: "display",
-      },
     });
   }
 };
@@ -522,8 +527,8 @@ const nowPlayingContinuously = computed(
 
 const audioDetail = ref<HTMLElement>();
 let accentPhraseElems: HTMLElement[] = [];
-const addAccentPhraseElem = (elem: HTMLElement) => {
-  if (elem) {
+const addAccentPhraseElem: VNodeRef = (elem) => {
+  if (elem instanceof HTMLElement) {
     accentPhraseElems.push(elem);
   }
 };
@@ -686,10 +691,12 @@ const handleHoverText = (
 
 const handleLengthHoverText = (
   isOver: boolean,
-  phoneme: hoveredType,
+  phoneme: MoraDataType,
   phraseIndex: number,
   moraIndex?: number
 ) => {
+  if (phoneme !== "vowel" && phoneme !== "consonant")
+    throw new Error("phoneme != hoveredType");
   lengthHoveredInfo.type = phoneme;
   // the pause and pitch templates don't emit a mouseOver event
   if (isOver) {
@@ -718,7 +725,7 @@ const isHovered = (
       if (
         accentPhraseIndex === pitchHoveredInfo.accentPhraseIndex &&
         moraIndex === pitchHoveredInfo.moraIndex &&
-        unvoicableVowels.indexOf(vowel) > -1
+        unvoicableVowels.includes(vowel)
       ) {
         isHover = true;
       }
@@ -762,7 +769,7 @@ const handleChangeVoicing = (
 ) => {
   if (
     selectedDetail.value == "pitch" &&
-    unvoicableVowels.indexOf(mora.vowel) > -1
+    unvoicableVowels.includes(mora.vowel)
   ) {
     let data = 0;
     if (mora.pitch == 0) {

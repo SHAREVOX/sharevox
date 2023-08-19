@@ -1,7 +1,7 @@
 import { Plugin } from "vue";
+import { debounce } from "quasar";
 import { Store } from "@/store/vuex";
 import { AllActions, AllGetters, AllMutations, State } from "@/store/type";
-import { debounce } from "quasar";
 
 export const ipcMessageReceiver: Plugin = {
   install: (
@@ -12,12 +12,6 @@ export const ipcMessageReceiver: Plugin = {
       "LOAD_PROJECT_FILE",
       (_, { filePath, confirm } = {}) =>
         options.store.dispatch("LOAD_PROJECT_FILE", { filePath, confirm })
-    );
-
-    window.electron.onReceivedIPCMsg(
-      "IMPORT_SV_MODEL_INFO",
-      (_, { filePath, confirm } = {}) =>
-        options.store.dispatch("IMPORT_SV_MODEL_INFO", { filePath, confirm })
     );
 
     window.electron.onReceivedIPCMsg("DETECT_MAXIMIZED", () =>
@@ -50,8 +44,8 @@ export const ipcMessageReceiver: Plugin = {
       options.store.dispatch("DETECT_LEAVE_FULLSCREEN")
     );
 
-    window.electron.onReceivedIPCMsg("CHECK_EDITED_AND_NOT_SAVE", () => {
-      options.store.dispatch("CHECK_EDITED_AND_NOT_SAVE");
+    window.electron.onReceivedIPCMsg("CHECK_EDITED_AND_NOT_SAVE", (_, obj) => {
+      options.store.dispatch("CHECK_EDITED_AND_NOT_SAVE", obj);
     });
 
     window.electron.onReceivedIPCMsg(

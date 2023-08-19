@@ -1,3 +1,9 @@
+import Mousetrap from "mousetrap";
+import { Dark, setCssVar, colors } from "quasar";
+import { SettingStoreState, SettingStoreTypes } from "./type";
+import { createUILockAction } from "./ui";
+import { createPartialStore } from "./vuex";
+import { useStore } from "@/store";
 import {
   HotkeyAction,
   HotkeyReturnType,
@@ -7,13 +13,9 @@ import {
   ThemeColorType,
   ThemeConf,
   ToolbarSetting,
+  EngineId,
+  ConfirmedTips,
 } from "@/type/preload";
-import { SettingStoreState, SettingStoreTypes } from "./type";
-import Mousetrap from "mousetrap";
-import { useStore } from "@/store";
-import { Dark, setCssVar, colors } from "quasar";
-import { createUILockAction } from "./ui";
-import { createPartialStore } from "./vuex";
 
 const hotkeyFunctionCache: Record<string, () => HotkeyReturnType> = {};
 
@@ -39,9 +41,12 @@ export const settingStoreState: SettingStoreState = {
     availableThemes: [],
   },
   editorFont: "default",
+  showTextLineNumber: false,
+  showAddAudioItemButton: true,
   acceptRetrieveTelemetry: "Unconfirmed",
   experimentalSetting: {
     enablePreset: false,
+    shouldApplyDefaultPresetOnVoiceChanged: false,
     enableInterrogativeUpspeak: false,
     enableMorphing: false,
     enableMultiEngine: false,
@@ -54,6 +59,8 @@ export const settingStoreState: SettingStoreState = {
   },
   confirmedTips: {
     tweakableSliderByScroll: false,
+    engineStartedOnAltPort: false,
+    notifyOnGenerate: false,
   },
   engineSettings: {},
 };
@@ -79,6 +86,22 @@ export const settingStore = createPartialStore<SettingStoreTypes>({
           currentTheme: theme.currentTheme,
         });
       }
+
+      dispatch("SET_EDITOR_FONT", {
+        editorFont: await window.electron.getSetting("editorFont"),
+      });
+
+      dispatch("SET_SHOW_TEXT_LINE_NUMBER", {
+        showTextLineNumber: await window.electron.getSetting(
+          "showTextLineNumber"
+        ),
+      });
+
+      dispatch("SET_SHOW_ADD_AUDIO_ITEM_BUTTON", {
+        showAddAudioItemButton: await window.electron.getSetting(
+          "showAddAudioItemButton"
+        ),
+      });
 
       dispatch("SET_ACCEPT_RETRIEVE_TELEMETRY", {
         acceptRetrieveTelemetry: await window.electron.getSetting(
@@ -118,11 +141,16 @@ export const settingStore = createPartialStore<SettingStoreTypes>({
         confirmedTips: await window.electron.getSetting("confirmedTips"),
       });
 
-      for (const [engineId, engineSetting] of Object.entries(
+      // FIXME: engineSettingsをMapにする
+      for (const [engineIdStr, engineSetting] of Object.entries(
         await window.electron.getSetting("engineSettings")
       )) {
+        if (engineSetting == undefined)
+          throw new Error(
+            `engineSetting is undefined. engineIdStr: ${engineIdStr}`
+          );
         commit("SET_ENGINE_SETTING", {
-          engineId,
+          engineId: EngineId(engineIdStr),
           engineSetting,
         });
       }
@@ -218,6 +246,20 @@ export const settingStore = createPartialStore<SettingStoreTypes>({
           `${r}, ${g}, ${b}`
         );
       }
+      const mixColors: ThemeColorType[][] = [
+        ["primary", "background"],
+        ["warning", "background"],
+      ];
+      for (const [color1, color2] of mixColors) {
+        const color1Rgb = colors.hexToRgb(theme.colors[color1]);
+        const color2Rgb = colors.hexToRgb(theme.colors[color2]);
+        const r = Math.trunc((color1Rgb.r + color2Rgb.r) / 2);
+        const g = Math.trunc((color1Rgb.g + color2Rgb.g) / 2);
+        const b = Math.trunc((color1Rgb.b + color2Rgb.b) / 2);
+        const propertyName = `--color-mix-${color1}-${color2}-rgb`;
+        const cssColor = `${r}, ${g}, ${b}`;
+        document.documentElement.style.setProperty(propertyName, cssColor);
+      }
       Dark.set(theme.isDark);
       setCssVar("primary", theme.colors["primary"]);
       setCssVar("warning", theme.colors["warning"]);
@@ -242,6 +284,33 @@ export const settingStore = createPartialStore<SettingStoreTypes>({
     action({ commit }, { editorFont }) {
       window.electron.setSetting("editorFont", editorFont);
       commit("SET_EDITOR_FONT", { editorFont });
+    },
+  },
+
+  SET_SHOW_TEXT_LINE_NUMBER: {
+    mutation(state, { showTextLineNumber }) {
+      state.showTextLineNumber = showTextLineNumber;
+    },
+    action({ commit }, { showTextLineNumber }) {
+      window.electron.setSetting("showTextLineNumber", showTextLineNumber);
+      commit("SET_SHOW_TEXT_LINE_NUMBER", {
+        showTextLineNumber,
+      });
+    },
+  },
+
+  SET_SHOW_ADD_AUDIO_ITEM_BUTTON: {
+    mutation(state, { showAddAudioItemButton }) {
+      state.showAddAudioItemButton = showAddAudioItemButton;
+    },
+    action({ commit }, { showAddAudioItemButton }) {
+      window.electron.setSetting(
+        "showAddAudioItemButton",
+        showAddAudioItemButton
+      );
+      commit("SET_SHOW_ADD_AUDIO_ITEM_BUTTON", {
+        showAddAudioItemButton,
+      });
     },
   },
 
@@ -319,6 +388,36 @@ export const settingStore = createPartialStore<SettingStoreTypes>({
     },
   },
 
+  SET_CONFIRMED_TIP: {
+    action({ state, dispatch }, { confirmedTip }) {
+      const confirmedTips = {
+        ...state.confirmedTips,
+        ...confirmedTip,
+      };
+
+      dispatch("SET_CONFIRMED_TIPS", {
+        confirmedTips: confirmedTips as ConfirmedTips,
+      });
+    },
+  },
+
+  RESET_CONFIRMED_TIPS: {
+    async action({ state, dispatch }) {
+      const confirmedTips: { [key: string]: boolean } = {
+        ...state.confirmedTips,
+      };
+
+      // 全てのヒントを未確認にする
+      for (const key in confirmedTips) {
+        confirmedTips[key] = false;
+      }
+
+      dispatch("SET_CONFIRMED_TIPS", {
+        confirmedTips: confirmedTips as ConfirmedTips,
+      });
+    },
+  },
+
   SET_ENGINE_SETTING: {
     mutation(state, { engineSetting, engineId }) {
       state.engineSettings[engineId] = engineSetting;
@@ -377,6 +476,26 @@ export const settingStore = createPartialStore<SettingStoreTypes>({
       }
     ),
   },
+
+  GET_RECENTLY_USED_PROJECTS: {
+    async action() {
+      return await window.electron.getSetting("recentlyUsedProjects");
+    },
+  },
+
+  APPEND_RECENTLY_USED_PROJECT: {
+    async action({ dispatch }, { filePath }) {
+      const recentlyUsedProjects = await dispatch("GET_RECENTLY_USED_PROJECTS");
+      const newRecentlyUsedProjects = [
+        filePath,
+        ...recentlyUsedProjects.filter((value) => value != filePath),
+      ].slice(0, 10);
+      await window.electron.setSetting(
+        "recentlyUsedProjects",
+        newRecentlyUsedProjects
+      );
+    },
+  },
 });
 
 export const setHotkeyFunctions = (
@@ -421,11 +540,11 @@ export const parseCombo = (event: KeyboardEvent): string => {
   if (event.key === " ") {
     recordedCombo += "Space";
   } else {
-    if (["Control", "Shift", "Alt", "Meta"].indexOf(event.key) == -1) {
+    if (["Control", "Shift", "Alt", "Meta"].includes(event.key)) {
+      recordedCombo = recordedCombo.slice(0, -1);
+    } else {
       recordedCombo +=
         event.key.length > 1 ? event.key : event.key.toUpperCase();
-    } else {
-      recordedCombo = recordedCombo.slice(0, -1);
     }
   }
   return recordedCombo;

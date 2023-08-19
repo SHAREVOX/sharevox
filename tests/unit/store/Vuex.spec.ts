@@ -1,4 +1,5 @@
 import { createLogger } from "vuex";
+import { assert, describe, it } from "vitest";
 import { indexStore } from "@/store/index";
 import { createStore } from "@/store/vuex";
 import { AllActions, AllGetters, AllMutations, State } from "@/store/type";
@@ -8,22 +9,23 @@ import { projectStore } from "@/store/project";
 import { uiStore } from "@/store/ui";
 import { settingStore } from "@/store/setting";
 import { presetStore } from "@/store/preset";
-import { assert } from "chai";
 import { proxyStore } from "@/store/proxy";
 import { dictionaryStore } from "@/store/dictionary";
-import { svModelStore } from "@/store/svModel";
 import { engineStore } from "@/store/engine";
+import { EngineId } from "@/type/preload";
 const isDevelopment = process.env.NODE_ENV == "development";
 // TODO: Swap external files to Mock
 
 describe("store/vuex.js test", () => {
   it("create store", () => {
+    const engineId = EngineId("88022f86-c823-436e-85a3-500c629749c4");
     const store = createStore<State, AllGetters, AllActions, AllMutations>({
       state: {
         engineStates: {
-          "88022f86-c823-436e-85a3-500c629749c4": "STARTING",
+          [engineId]: "STARTING",
         },
         engineSupportedDevices: {},
+        altPortInfos: {},
         characterInfos: {},
         morphableTargetsInfo: {},
         defaultStyleIds: [],
@@ -34,6 +36,7 @@ describe("store/vuex.js test", () => {
         audioPlayStartPoint: 0,
         uiLockCount: 0,
         dialogLockCount: 0,
+        reloadingLock: false,
         nowPlayingContinuously: false,
         undoCommands: [],
         redoCommands: [],
@@ -65,7 +68,7 @@ describe("store/vuex.js test", () => {
           audioOutputDevice: "default",
         },
         engineSettings: {
-          "88022f86-c823-436e-85a3-500c629749c4": {
+          [engineId]: {
             outputSamplingRate: "engineDefault",
             useGpu: false,
           },
@@ -75,6 +78,8 @@ describe("store/vuex.js test", () => {
           availableThemes: [],
         },
         editorFont: "default",
+        showTextLineNumber: false,
+        showAddAudioItemButton: true,
         isPinned: false,
         isFullscreen: false,
         presetItems: {},
@@ -83,10 +88,10 @@ describe("store/vuex.js test", () => {
         toolbarSetting: [],
         acceptRetrieveTelemetry: "Unconfirmed",
         acceptTerms: "Unconfirmed",
-        engineIds: ["88022f86-c823-436e-85a3-500c629749c4"],
+        engineIds: [engineId],
         engineInfos: {
-          "88022f86-c823-436e-85a3-500c629749c4": {
-            uuid: "88022f86-c823-436e-85a3-500c629749c4",
+          [engineId]: {
+            uuid: engineId,
             name: "Engine 1",
             executionEnabled: false,
             executionFilePath: "",
@@ -96,7 +101,7 @@ describe("store/vuex.js test", () => {
           },
         },
         engineManifests: {
-          "88022f86-c823-436e-85a3-500c629749c4": {
+          [engineId]: {
             manifestVersion: "0.13.0",
             name: "DUMMY VOICEVOX ENGINE",
             brandName: "DUMMY VOICEVOX",
@@ -121,6 +126,7 @@ describe("store/vuex.js test", () => {
         },
         experimentalSetting: {
           enablePreset: false,
+          shouldApplyDefaultPresetOnVoiceChanged: false,
           enableInterrogativeUpspeak: false,
           enableMorphing: false,
           enableMultiEngine: false,
@@ -133,8 +139,12 @@ describe("store/vuex.js test", () => {
         },
         confirmedTips: {
           tweakableSliderByScroll: false,
+          engineStartedOnAltPort: false,
+          notifyOnGenerate: false,
         },
         progress: -1,
+        isVuexReady: false,
+        defaultPresetKeys: {},
       },
       getters: {
         ...uiStore.getters,
@@ -148,7 +158,6 @@ describe("store/vuex.js test", () => {
         ...presetStore.getters,
         ...proxyStore.getters,
         ...dictionaryStore.getters,
-        ...svModelStore.getters,
       },
       mutations: {
         ...uiStore.mutations,
@@ -162,7 +171,6 @@ describe("store/vuex.js test", () => {
         ...presetStore.mutations,
         ...proxyStore.mutations,
         ...dictionaryStore.mutations,
-        ...svModelStore.mutations,
       },
       actions: {
         ...uiStore.actions,
@@ -176,7 +184,6 @@ describe("store/vuex.js test", () => {
         ...presetStore.actions,
         ...proxyStore.actions,
         ...dictionaryStore.actions,
-        ...svModelStore.actions,
       },
       plugins: isDevelopment ? [createLogger()] : undefined,
       strict: process.env.NODE_ENV !== "production",
@@ -242,6 +249,8 @@ describe("store/vuex.js test", () => {
       store.state.experimentalSetting.enableInterrogativeUpspeak,
       false
     );
+    assert.equal(store.state.showTextLineNumber, false);
+    assert.equal(store.state.showAddAudioItemButton, true);
     assert.propertyVal(
       store.state.splitterPosition,
       "audioDetailPaneHeight",
@@ -249,5 +258,8 @@ describe("store/vuex.js test", () => {
     );
     assert.propertyVal(store.state.splitterPosition, "audioInfoPaneWidth", 20);
     assert.propertyVal(store.state.splitterPosition, "portraitPaneWidth", 50);
+    assert.equal(store.state.confirmedTips.tweakableSliderByScroll, false);
+    assert.equal(store.state.confirmedTips.engineStartedOnAltPort, false);
+    assert.equal(store.state.confirmedTips.notifyOnGenerate, false);
   });
 });

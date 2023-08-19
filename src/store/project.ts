@@ -1,13 +1,22 @@
+import semver from "semver";
+import { z } from "zod";
+import { getBaseName } from "./utility";
+import { createPartialStore } from "./vuex";
 import { createUILockAction } from "@/store/ui";
 import { AudioItem, ProjectStoreState, ProjectStoreTypes } from "@/store/type";
-import semver from "semver";
-import { buildProjectFileName, getBaseName } from "./utility";
-import { createPartialStore } from "./vuex";
 
 import { AccentPhrase } from "@/openapi";
-import { z } from "zod";
+import {
+  AudioKey,
+  audioKeySchema,
+  EngineId,
+  engineIdSchema,
+  speakerIdSchema,
+  styleIdSchema,
+} from "@/type/preload";
+import { getValueOrThrow, ResultError } from "@/type/result";
 
-const DEFAULT_SAMPLING_RATE = 48000;
+const DEFAULT_SAMPLING_RATE = 24000;
 
 export const projectStoreState: ProjectStoreState = {
   savedLastCommandUnixMillisec: null,
@@ -32,16 +41,11 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
     action: createUILockAction(
       async (context, { confirm }: { confirm?: boolean }) => {
         if (confirm !== false && context.getters.IS_EDITED) {
-          const result: number = await window.electron.showQuestionDialog({
-            type: "info",
-            title: "警告",
-            message:
-              "プロジェクトの変更が保存されていません。\n" +
-              "変更を破棄してもよろしいですか？",
-            buttons: ["破棄", "キャンセル"],
-            cancelId: 1,
-          });
-          if (result == 1) {
+          const result = await context.dispatch(
+            "SAVE_OR_DISCARD_PROJECT_FILE",
+            {}
+          );
+          if (result == "canceled") {
             return;
           }
         }
@@ -66,6 +70,7 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
   LOAD_PROJECT_FILE: {
     /**
      * プロジェクトファイルを読み込む。読み込めたかの成否が返る。
+     * エラー発生時はダイアログが表示される。
      */
     action: createUILockAction(
       async (
@@ -85,8 +90,15 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
 
         const projectFileErrorMsg = `SHAREVOX Project file "${filePath}" is a invalid file.`;
 
+        let buf: ArrayBuffer;
         try {
-          const buf = await window.electron.readFile({ filePath });
+          buf = await window.electron
+            .readFile({ filePath })
+            .then(getValueOrThrow);
+
+          await context.dispatch("APPEND_RECENTLY_USED_PROJECT", {
+            filePath,
+          });
           const text = new TextDecoder("utf-8").decode(buf).trim();
           const projectData = JSON.parse(text);
 
@@ -115,7 +127,7 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
           };
 
           // Migration
-          const engineId = "074fc39e-678b-4c13-8916-ffca8d505d1d";
+          const engineId = EngineId("d11b8518-7b23-4c9b-bd04-ecac1ad1e475");
 
           if (
             semver.satisfies(projectAppVersion, "<0.4", semverSatisfiesOptions)
@@ -233,6 +245,41 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
             }
           }
 
+          if (
+            semver.satisfies(projectAppVersion, "<0.15", semverSatisfiesOptions)
+          ) {
+            const characterInfos = context.getters.USER_ORDERED_CHARACTER_INFOS;
+            if (characterInfos == undefined)
+              throw new Error("USER_ORDERED_CHARACTER_INFOS == undefined");
+            for (const audioItemsKey in projectData.audioItems) {
+              const audioItem = projectData.audioItems[audioItemsKey];
+              if (audioItem.voice == undefined) {
+                const oldEngineId = audioItem.engineId;
+                const oldStyleId = audioItem.styleId;
+                const chracterinfo = characterInfos.find((characterInfo) =>
+                  characterInfo.metas.styles.some(
+                    (styeleinfo) =>
+                      styeleinfo.engineId === audioItem.engineId &&
+                      styeleinfo.styleId === audioItem.styleId
+                  )
+                );
+                if (chracterinfo == undefined)
+                  throw new Error(
+                    `chracterinfo == undefined: ${oldEngineId}, ${oldStyleId}`
+                  );
+                const speakerId = chracterinfo.metas.speakerUuid;
+                audioItem.voice = {
+                  engineId: oldEngineId,
+                  speakerId,
+                  styleId: oldStyleId,
+                };
+
+                delete audioItem.engineId;
+                delete audioItem.styleId;
+              }
+            }
+          }
+
           // Validation check
           const parsedProjectData = projectSchema.parse(projectData);
           if (
@@ -248,36 +295,49 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
           if (
             !parsedProjectData.audioKeys.every(
               (audioKey) =>
-                parsedProjectData.audioItems[audioKey].engineId != undefined
+                parsedProjectData.audioItems[audioKey]?.voice != undefined
             )
           ) {
-            throw new Error(
-              'Every audioItem should have a "engineId" attribute.'
-            );
+            throw new Error('Every audioItem should have a "voice" attribute.');
+          }
+          if (
+            !parsedProjectData.audioKeys.every(
+              (audioKey) =>
+                parsedProjectData.audioItems[audioKey]?.voice.engineId !=
+                undefined
+            )
+          ) {
+            throw new Error('Every voice should have a "engineId" attribute.');
           }
           // FIXME: assert engineId is registered
           if (
             !parsedProjectData.audioKeys.every(
               (audioKey) =>
-                parsedProjectData.audioItems[audioKey].styleId != undefined
+                parsedProjectData.audioItems[audioKey]?.voice.speakerId !=
+                undefined
             )
           ) {
-            throw new Error(
-              'Every audioItem should have a "styleId" attribute.'
-            );
+            throw new Error('Every voice should have a "speakerId" attribute.');
+          }
+          if (
+            !parsedProjectData.audioKeys.every(
+              (audioKey) =>
+                parsedProjectData.audioItems[audioKey]?.voice.styleId !=
+                undefined
+            )
+          ) {
+            throw new Error('Every voice should have a "styleId" attribute.');
           }
 
           if (confirm !== false && context.getters.IS_EDITED) {
-            const result: number = await window.electron.showQuestionDialog({
-              type: "info",
-              title: "警告",
-              message:
-                "プロジェクトをロードすると現在のプロジェクトは破棄されます。\n" +
-                "変更を破棄してもよろしいですか？",
-              buttons: ["破棄", "キャンセル"],
-              cancelId: 1,
-            });
-            if (result == 1) {
+            const result = await context.dispatch(
+              "SAVE_OR_DISCARD_PROJECT_FILE",
+              {
+                additionalMessage:
+                  "プロジェクトをロードすると現在のプロジェクトは破棄されます。",
+              }
+            );
+            if (result == "canceled") {
               return false;
             }
           }
@@ -302,6 +362,8 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
           const message = (() => {
             if (typeof err === "string") return err;
             if (!(err instanceof Error)) return "エラーが発生しました。";
+            if (err instanceof ResultError && err.code === "ENOENT")
+              return "プロジェクトファイルが見つかりませんでした。ファイルが移動、または削除された可能性があります。";
             if (err.message.startsWith(projectFileErrorMsg))
               return "ファイルフォーマットが正しくありません。";
             return err.message;
@@ -309,7 +371,7 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
           await window.electron.showMessageDialog({
             type: "error",
             title: "エラー",
-            message,
+            message: `プロジェクトファイルの読み込みに失敗しました。\n${message}`,
           });
           return false;
         }
@@ -318,64 +380,121 @@ export const projectStore = createPartialStore<ProjectStoreTypes>({
   },
 
   SAVE_PROJECT_FILE: {
+    /**
+     * プロジェクトファイルを保存する。保存の成否が返る。
+     * エラー発生時はダイアログが表示される。
+     */
     action: createUILockAction(
       async (context, { overwrite }: { overwrite?: boolean }) => {
         let filePath = context.state.projectFilePath;
-        if (!overwrite || !filePath) {
-          let defaultPath: string;
+        try {
+          if (!overwrite || !filePath) {
+            let defaultPath: string;
 
-          if (!filePath) {
-            // if new project: use generated name
-            defaultPath = buildProjectFileName(context.state, "svproj");
-          } else {
-            // if saveAs for existing project: use current project path
-            defaultPath = filePath;
+            if (!filePath) {
+              // if new project: use generated name
+              defaultPath = `${context.getters.DEFAULT_PROJECT_FILE_BASE_NAME}.svproj`;
+            } else {
+              // if saveAs for existing project: use current project path
+              defaultPath = filePath;
+            }
+
+            // Write the current status to a project file.
+            const ret = await window.electron.showProjectSaveDialog({
+              title: "プロジェクトファイルの保存",
+              defaultPath,
+            });
+            if (ret == undefined) {
+              return false;
+            }
+            filePath = ret;
+          }
+          if (
+            context.state.projectFilePath &&
+            context.state.projectFilePath != filePath
+          ) {
+            await window.electron.showMessageDialog({
+              type: "info",
+              title: "保存",
+              message: `編集中のプロジェクトが ${filePath} に切り替わりました。`,
+            });
           }
 
-          // Write the current status to a project file.
-          const ret = await window.electron.showProjectSaveDialog({
-            title: "プロジェクトファイルの保存",
-            defaultPath,
+          await context.dispatch("APPEND_RECENTLY_USED_PROJECT", {
+            filePath,
           });
-          if (ret == undefined) {
-            return;
-          }
-          filePath = ret;
-        }
-        if (
-          context.state.projectFilePath &&
-          context.state.projectFilePath != filePath
-        ) {
-          window.electron.showMessageDialog({
-            type: "info",
-            title: "保存",
-            message: `編集中のプロジェクトが ${filePath} に切り替わりました。`,
+          const appInfos = await window.electron.getAppInfos();
+          const { audioItems, audioKeys } = context.state;
+          const projectData: ProjectType = {
+            appVersion: appInfos.version,
+            audioKeys,
+            audioItems,
+          };
+          const buf = new TextEncoder().encode(
+            JSON.stringify(projectData)
+          ).buffer;
+          await window.electron
+            .writeFile({
+              filePath,
+              buffer: buf,
+            })
+            .then(getValueOrThrow);
+          context.commit("SET_PROJECT_FILEPATH", { filePath });
+          context.commit(
+            "SET_SAVED_LAST_COMMAND_UNIX_MILLISEC",
+            context.getters.LAST_COMMAND_UNIX_MILLISEC
+          );
+          return true;
+        } catch (err) {
+          window.electron.logError(err);
+          const message = (() => {
+            if (typeof err === "string") return err;
+            if (!(err instanceof Error)) return "エラーが発生しました。";
+            return err.message;
+          })();
+          await window.electron.showMessageDialog({
+            type: "error",
+            title: "エラー",
+            message: `プロジェクトファイルの保存に失敗しました。\n${message}`,
           });
+          return false;
         }
-
-        // const appInfos = await window.electron.getAppInfos();
-        // プロジェクトマイグレーション周りのコードを消すと、upstreamマージが面倒になるので、ベースとなったVOICEVOXのバージョン値を用いる
-        const voicevoxUpdateInfos =
-          await window.electron.getVoicevoxUpdateInfos();
-        const appVersion = voicevoxUpdateInfos[0].version;
-        const { audioItems, audioKeys } = context.state;
-        const projectData: ProjectType = {
-          appVersion,
-          audioKeys,
-          audioItems,
-        };
-        const buf = new TextEncoder().encode(
-          JSON.stringify(projectData)
-        ).buffer;
-        await window.electron.writeFile({ filePath, buffer: buf });
-        context.commit("SET_PROJECT_FILEPATH", { filePath });
-        context.commit(
-          "SET_SAVED_LAST_COMMAND_UNIX_MILLISEC",
-          context.getters.LAST_COMMAND_UNIX_MILLISEC
-        );
-        return;
       }
     ),
+  },
+
+  /**
+   * プロジェクトファイルを保存するか破棄するかキャンセルするかのダイアログを出して、保存する場合は保存する。
+   * 何を選択したかが返る。
+   * 保存に失敗した場合はキャンセル扱いになる。
+   */
+  SAVE_OR_DISCARD_PROJECT_FILE: {
+    action: createUILockAction(async ({ dispatch }, { additionalMessage }) => {
+      let message = "プロジェクトの変更が保存されていません。";
+      if (additionalMessage) {
+        message += "\n" + additionalMessage;
+      }
+      message += "\n変更を保存しますか？";
+
+      const result: number = await window.electron.showQuestionDialog({
+        type: "info",
+        title: "警告",
+        message,
+        buttons: ["保存", "破棄", "キャンセル"],
+        cancelId: 2,
+        defaultId: 2,
+      });
+      if (result == 0) {
+        const saved = await dispatch("SAVE_PROJECT_FILE", {
+          overwrite: true,
+        });
+        return saved ? "saved" : "canceled";
+      } else if (result == 1) {
+        return "discarded";
+      } else {
+        return "canceled";
+      }
+    }),
   },
 
   IS_EDITED: {
@@ -425,15 +544,18 @@ const audioQuerySchema = z.object({
 
 const morphingInfoSchema = z.object({
   rate: z.number(),
-  targetEngineId: z.string(),
-  targetSpeakerId: z.string(),
-  targetStyleId: z.number(),
+  targetEngineId: engineIdSchema,
+  targetSpeakerId: speakerIdSchema,
+  targetStyleId: styleIdSchema,
 });
 
 const audioItemSchema = z.object({
   text: z.string(),
-  engineId: z.string().optional(),
-  styleId: z.number().optional(),
+  voice: z.object({
+    engineId: engineIdSchema,
+    speakerId: speakerIdSchema,
+    styleId: styleIdSchema,
+  }),
   query: audioQuerySchema.optional(),
   presetKey: z.string().optional(),
   morphingInfo: morphingInfoSchema.optional(),
@@ -442,14 +564,14 @@ const audioItemSchema = z.object({
 const projectSchema = z.object({
   appVersion: z.string(),
   // description: "Attribute keys of audioItems.",
-  audioKeys: z.array(z.string()),
-  // description: "SHAREVOX states per cell",
-  audioItems: z.record(audioItemSchema),
+  audioKeys: z.array(audioKeySchema),
+  // description: "VOICEVOX states per cell",
+  audioItems: z.record(audioKeySchema, audioItemSchema),
 });
 
 export type LatestProjectType = z.infer<typeof projectSchema>;
 interface ProjectType {
   appVersion: string;
-  audioKeys: string[];
-  audioItems: Record<string, AudioItem>;
+  audioKeys: AudioKey[];
+  audioItems: Record<AudioKey, AudioItem>;
 }

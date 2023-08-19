@@ -7,51 +7,109 @@ on:
       - "**"
   workflow_dispatch:
 
+env:
+  VOICEVOX_ENGINE_REPO: "SHAREVOX/sharevox_engine"
+  VOICEVOX_ENGINE_VERSION: "0.2.0"
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  build:
+  # ビルドのテスト
+  build-test:
     runs-on: windows-latest
-    env:
-      ELECTRON_CACHE: .cache/electron
-      ELECTRON_BUILDER_CACHE: .cache/electron-builder
-      cache-version: v2
     steps:
       - uses: actions/checkout@v3
-      - id: node-version
-        run: echo "NODE_VERSION=$(cat .node-version)" >> $GITHUB_OUTPUT
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+      - run: yarn electron:build_pnever
 
-      - uses: actions/setup-node@v3
+  # unit テスト
+  unit-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - run: yarn test:unit
+
+  # e2e テスト
+  e2e-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            voicevox_engine_asset_name: linux-cpu
+          - os: macos-latest
+            voicevox_engine_asset_name: macos-x64
+          - os: windows-latest
+            voicevox_engine_asset_name: windows-cpu
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Install xvfb and x11-xserver-utils
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb x11-xserver-utils # for electron
+          sudo apt-get install -y libsndfile1 # for engine
+
+      - name: Download VOICEVOX ENGINE
+        id: download-engine
+        uses: ./.github/actions/download-engine
         with:
-          node-version: "${{ steps.node-version.outputs.NODE_VERSION }}"
+          repo: ${{ env.VOICEVOX_ENGINE_REPO }}
+          version: ${{ env.VOICEVOX_ENGINE_VERSION }}
+          dest: ${{ github.workspace }}/voicevox_engine
+          target: ${{ matrix.voicevox_engine_asset_name }}
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Setup
+        run: |
+          # playwright
+          npx playwright install
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          # run.exe
+          chmod +x ${{ steps.download-engine.outputs.run_path }}
 
-      - name: Cache Electron
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.ELECTRON_CACHE }}
-          key: ${{ env.cache-version }}-${{ runner.os }}--electron-cache-${{ hashFiles('yarn.locK') }}
-          restore-keys: |
-            ${{ env.cache-version }}-${{ runner.os }}--electron-cache-
+          # .env
+          cp .env.test .env
+          sed -i -e 's|"../voicevox_engine/run.exe"|"${{ steps.download-engine.outputs.run_path }}"|' .env
+          sed -i -e 's|"executionArgs": \[\],|"executionArgs": ["--port=50021"],|' .env
 
-      - name: Cache Electron-Builder
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.ELECTRON_BUILDER_CACHE }}
-          key: ${{ env.cache-version }}-${{ runner.os }}--electron-builder-cache-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ env.cache-version }}-${{ runner.os }}--electron-builder-cache-
+      - name: Run yarn test:browser-e2e
+        run: |
+          if [ -n "${{ runner.debug }}" ]; then
+            export DEBUG="pw:browser*"
+          fi
+          if [[ ${{ matrix.os }} == ubuntu-* ]]; then
+            xvfb-run --auto-servernum yarn test:browser-e2e
+          else
+            yarn test:browser-e2e
+          fi
 
-      - run: yarn install --frozen-lockfile
+      - name: Run yarn test:electron-e2e
+        run: |
+          if [ -n "${{ runner.debug }}" ]; then
+            export DEBUG="pw:browser*"
+          fi
+          if [[ ${{ matrix.os }} == ubuntu-* ]]; then
+            xvfb-run --auto-servernum yarn test:electron-e2e
+          else
+            yarn test:electron-e2e
+          fi
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
 
       - name: Disallowed licenses check
         run: yarn license:generate -- -o sharevox_licenses.json
@@ -59,5 +117,3 @@ jobs:
       - run: yarn typecheck
       - run: yarn lint
       - run: yarn markdownlint
-      - run: yarn test:unit
-      - run: yarn electron:build_pnever

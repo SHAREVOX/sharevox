@@ -24,9 +24,14 @@ import { presetStoreState, presetStore } from "./preset";
 import { dictionaryStoreState, dictionaryStore } from "./dictionary";
 import { proxyStore, proxyStoreState } from "./proxy";
 import { createPartialStore } from "./vuex";
-import { DefaultStyleId } from "@/type/preload";
 import { engineStoreState, engineStore } from "./engine";
-import { svModelStore, svModelStoreState } from "./svModel";
+import {
+  DefaultStyleId,
+  EngineId,
+  SpeakerId,
+  StyleId,
+  Voice,
+} from "@/type/preload";
 
 export const storeKey: InjectionKey<
   Store<State, AllGetters, AllActions, AllMutations>
@@ -106,6 +111,23 @@ export const indexStore = createPartialStore<IndexStoreTypes>({
         };
       });
       return flattenCharacterInfos;
+    },
+  },
+
+  GET_ALL_VOICES: {
+    getter(state) {
+      const flattenCharacters = Object.values(state.characterInfos).flatMap(
+        (characterInfos) => characterInfos
+      );
+      const flattenVoices: Voice[] = flattenCharacters.flatMap((c) =>
+        c.metas.styles.map((s) => ({
+          engineId: EngineId(s.engineId),
+          speakerId: SpeakerId(c.metas.speakerUuid),
+          styleId: StyleId(s.styleId),
+        }))
+      );
+
+      return flattenVoices;
     },
   },
 
@@ -221,16 +243,10 @@ export const indexStore = createPartialStore<IndexStoreTypes>({
       if (state.audioKeys.length === 1) {
         const audioItem = state.audioItems[state.audioKeys[0]];
         if (audioItem.text === "") {
-          if (audioItem.engineId === undefined)
-            throw new Error("assert audioItem.engineId !== undefined");
-
-          if (audioItem.styleId === undefined)
-            throw new Error("assert audioItem.styleId !== undefined");
-
           const characterInfo = getCharacterInfo(
             state,
-            audioItem.engineId,
-            audioItem.styleId
+            audioItem.voice.engineId,
+            audioItem.voice.styleId
           );
 
           if (characterInfo === undefined)
@@ -239,9 +255,15 @@ export const indexStore = createPartialStore<IndexStoreTypes>({
           const speakerUuid = characterInfo.metas.speakerUuid;
           const defaultStyleId = defaultStyleIds.find(
             (styleId) => speakerUuid == styleId.speakerUuid
-          )?.defaultStyleId;
+          );
+          if (defaultStyleId == undefined)
+            throw new Error("defaultStyleId == undefined");
 
-          audioItem.styleId = defaultStyleId;
+          audioItem.voice = {
+            engineId: defaultStyleId.engineId,
+            speakerId: defaultStyleId.speakerUuid,
+            styleId: defaultStyleId.defaultStyleId,
+          };
         }
       }
     },
@@ -341,7 +363,6 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...indexStoreState,
     ...presetStoreState,
     ...dictionaryStoreState,
-    ...svModelStoreState,
     ...proxyStoreState,
   },
 
@@ -354,7 +375,6 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...settingStore.getters,
     ...presetStore.getters,
     ...dictionaryStore.getters,
-    ...svModelStore.getters,
     ...audioCommandStore.getters,
     ...indexStore.getters,
     ...proxyStore.getters,
@@ -370,7 +390,6 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...audioCommandStore.mutations,
     ...presetStore.mutations,
     ...dictionaryStore.mutations,
-    ...svModelStore.mutations,
     ...indexStore.mutations,
     ...proxyStore.mutations,
   },
@@ -385,7 +404,6 @@ export const store = createStore<State, AllGetters, AllActions, AllMutations>({
     ...audioCommandStore.actions,
     ...presetStore.actions,
     ...dictionaryStore.actions,
-    ...svModelStore.actions,
     ...indexStore.actions,
     ...proxyStore.actions,
   },

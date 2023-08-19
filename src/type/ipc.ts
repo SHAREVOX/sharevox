@@ -7,10 +7,13 @@ import {
   ThemeSetting,
   ToolbarSetting,
   UpdateInfo,
-  WriteFileErrorResult,
   NativeThemeType,
   EngineSetting,
+  EngineId,
+  MessageBoxReturnValue,
 } from "@/type/preload";
+import { AltPortInfos } from "@/store/type";
+import { Result } from "@/type/result";
 
 /**
  * invoke, handle
@@ -19,11 +22,6 @@ export type IpcIHData = {
   GET_APP_INFOS: {
     args: [];
     return: AppInfos;
-  };
-
-  GET_TEMP_DIR: {
-    args: [];
-    return: string;
   };
 
   GET_HOW_TO_USE_TEXT: {
@@ -69,6 +67,11 @@ export type IpcIHData = {
   GET_PRIVACY_POLICY_TEXT: {
     args: [];
     return: string;
+  };
+
+  GET_ALT_PORT_INFOS: {
+    args: [];
+    return: AltPortInfos;
   };
 
   SHOW_AUDIO_SAVE_DIALOG: {
@@ -119,7 +122,7 @@ export type IpcIHData = {
         message: string;
       }
     ];
-    return: Electron.MessageBoxReturnValue;
+    return: MessageBoxReturnValue;
   };
 
   SHOW_QUESTION_DIALOG: {
@@ -130,6 +133,7 @@ export type IpcIHData = {
         message: string;
         buttons: string[];
         cancelId?: number;
+        defaultId?: number;
       }
     ];
     return: number;
@@ -142,7 +146,7 @@ export type IpcIHData = {
         message: string;
       }
     ];
-    return: Electron.MessageBoxReturnValue;
+    return: MessageBoxReturnValue;
   };
 
   SHOW_ERROR_DIALOG: {
@@ -152,12 +156,7 @@ export type IpcIHData = {
         message: string;
       }
     ];
-    return: Electron.MessageBoxReturnValue;
-  };
-
-  OPEN_TEXT_EDIT_CONTEXT_MENU: {
-    args: [];
-    return: void;
+    return: MessageBoxReturnValue;
   };
 
   IS_AVAILABLE_GPU_MODE: {
@@ -200,6 +199,11 @@ export type IpcIHData = {
     return: void;
   };
 
+  OPEN_LOG_DIRECTORY: {
+    args: [];
+    return: void;
+  };
+
   ENGINE_INFOS: {
     args: [];
     return: EngineInfo[];
@@ -211,12 +215,12 @@ export type IpcIHData = {
   };
 
   RESTART_ENGINE: {
-    args: [obj: { engineId: string }];
+    args: [obj: { engineId: EngineId }];
     return: void;
   };
 
   OPEN_ENGINE_DIRECTORY: {
-    args: [obj: { engineId: string }];
+    args: [obj: { engineId: EngineId }];
     return: void;
   };
 
@@ -269,7 +273,7 @@ export type IpcIHData = {
   };
 
   SET_ENGINE_SETTING: {
-    args: [engineId: string, engineSetting: EngineSetting];
+    args: [engineId: EngineId, engineSetting: EngineSetting];
     return: void;
   };
 
@@ -284,7 +288,7 @@ export type IpcIHData = {
   };
 
   UNINSTALL_VVPP_ENGINE: {
-    args: [engineId: string];
+    args: [engineId: EngineId];
     return: Promise<boolean>;
   };
 
@@ -293,24 +297,19 @@ export type IpcIHData = {
     return: EngineDirValidationResult;
   };
 
-  RESTART_APP: {
-    args: [obj: { isMultiEngineOffMode: boolean }];
+  RELOAD_APP: {
+    args: [obj: { isMultiEngineOffMode?: boolean }];
     return: void;
-  };
-
-  JOIN_PATH: {
-    args: [obj: { pathArray: string[] }];
-    return: string;
   };
 
   WRITE_FILE: {
     args: [obj: { filePath: string; buffer: ArrayBuffer }];
-    return: WriteFileErrorResult | undefined;
+    return: Result<undefined>;
   };
 
   READ_FILE: {
     args: [obj: { filePath: string }];
-    return: ArrayBuffer;
+    return: Result<ArrayBuffer>;
   };
 };
 
@@ -320,11 +319,6 @@ export type IpcIHData = {
 export type IpcSOData = {
   LOAD_PROJECT_FILE: {
     args: [obj: { filePath?: string; confirm?: boolean }];
-    return: void;
-  };
-
-  IMPORT_SV_MODEL_INFO: {
-    args: [obj: { filePath: string; confirm?: boolean }];
     return: void;
   };
 
@@ -339,7 +333,7 @@ export type IpcSOData = {
   };
 
   DETECTED_ENGINE_ERROR: {
-    args: [obj: { engineId: string }];
+    args: [obj: { engineId: EngineId }];
     return: void;
   };
 
@@ -364,7 +358,12 @@ export type IpcSOData = {
   };
 
   CHECK_EDITED_AND_NOT_SAVE: {
-    args: [];
+    args: [
+      obj: {
+        closeOrReload: "close" | "reload";
+        isMultiEngineOffMode?: boolean;
+      }
+    ];
     return: void;
   };
 

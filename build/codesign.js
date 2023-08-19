@@ -23,7 +23,7 @@ async function doSign(file, hash, owner) {
   const appendTd = sha256 ? "/td sha256" : null;
   const signDebug = debug ? "/debug" : null;
 
-  let args = [
+  const args = [
     "signtool",
     "sign",
     signDebug,

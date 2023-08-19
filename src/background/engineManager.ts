@@ -1,23 +1,32 @@
 import { spawn, ChildProcess } from "child_process";
+import path from "path";
+import fs from "fs";
 import treeKill from "tree-kill";
 import Store from "electron-store";
 import shlex from "shlex";
 
-import { BrowserWindow, dialog } from "electron";
+import { app, dialog } from "electron"; // FIXME: ここでelectronをimportするのは良くない
 
-import path from "path";
-import { ipcMainSend } from "@/electron/ipc";
+import log from "electron-log";
+import { z } from "zod";
+import {
+  findAltPort,
+  getPidFromPort,
+  getProcessNameFromPid,
+  isAssignablePort,
+  url2HostInfo,
+} from "./portManager";
 
-import fs from "fs";
 import {
   EngineInfo,
   ElectronStoreType,
   EngineDirValidationResult,
   MinimumEngineManifest,
+  EngineId,
+  engineIdSchema,
+  minimumEngineManifestSchema,
 } from "@/type/preload";
-
-import log from "electron-log";
-import { z } from "zod";
+import { AltPortInfos } from "@/store/type";
 
 type EngineProcessContainer = {
   willQuitEngine: boolean;
@@ -29,11 +38,12 @@ type EngineProcessContainer = {
  */
 function createDefaultEngineInfos(defaultEngineDir: string): EngineInfo[] {
   // TODO: envから直接ではなく、envに書いたengine_manifest.jsonから情報を得るようにする
-  const defaultEngineInfosEnv = process.env.DEFAULT_ENGINE_INFOS ?? "[]";
+  const defaultEngineInfosEnv =
+    import.meta.env.VITE_DEFAULT_ENGINE_INFOS ?? "[]";
 
   const envSchema = z
     .object({
-      uuid: z.string().uuid(),
+      uuid: engineIdSchema,
       host: z.string(),
       name: z.string(),
       executionEnabled: z.boolean(),
@@ -60,32 +70,39 @@ export class EngineManager {
   store: Store<ElectronStoreType>;
   defaultEngineDir: string;
   vvppEngineDir: string;
+  onEngineProcessError: (engineInfo: EngineInfo, error: Error) => void;
 
-  defaultEngineInfos: EngineInfo[];
-  engineProcessContainers: Record<string, EngineProcessContainer>;
+  defaultEngineInfos: EngineInfo[] = [];
+  additionalEngineInfos: EngineInfo[] = [];
+  engineProcessContainers: Record<EngineId, EngineProcessContainer>;
+
+  public altPortInfo: AltPortInfos = {};
 
   constructor({
     store,
     defaultEngineDir,
     vvppEngineDir,
+    onEngineProcessError,
   }: {
     store: Store<ElectronStoreType>;
     defaultEngineDir: string;
     vvppEngineDir: string;
+    onEngineProcessError: (engineInfo: EngineInfo, error: Error) => void;
   }) {
     this.store = store; // FIXME: エンジンマネージャーがelectron-storeを持たなくても良いようにする
     this.defaultEngineDir = defaultEngineDir;
     this.vvppEngineDir = vvppEngineDir;
+    this.onEngineProcessError = onEngineProcessError;
 
-    this.defaultEngineInfos = createDefaultEngineInfos(defaultEngineDir);
+    this.initializeEngineInfosAndAltPortInfo();
     this.engineProcessContainers = {};
   }
 
   /**
-   * 追加エンジンの一覧を取得する。
+   * 追加エンジンの一覧を作成する。
    * FIXME: store.get("registeredEngineDirs")への副作用をEngineManager外に移動する
    */
-  fetchAdditionalEngineInfos(): EngineInfo[] {
+  private createAdditionalEngineInfos(): EngineInfo[] {
     const engines: EngineInfo[] = [];
     const addEngine = (engineDir: string, type: "vvpp" | "path") => {
       const manifestPath = path.join(engineDir, "engine_manifest.json");
@@ -94,8 +111,8 @@ export class EngineManager {
       }
       let manifest: MinimumEngineManifest;
       try {
-        manifest = JSON.parse(
-          fs.readFileSync(manifestPath, { encoding: "utf8" })
+        manifest = minimumEngineManifestSchema.parse(
+          JSON.parse(fs.readFileSync(manifestPath, { encoding: "utf8" }))
         );
       } catch (e) {
         return "manifestParseError";
@@ -153,14 +170,13 @@ export class EngineManager {
    * 全てのエンジンの一覧を取得する。デフォルトエンジン＋追加エンジン。
    */
   fetchEngineInfos(): EngineInfo[] {
-    const additionalEngineInfos = this.fetchAdditionalEngineInfos();
-    return [...this.defaultEngineInfos, ...additionalEngineInfos];
+    return [...this.defaultEngineInfos, ...this.additionalEngineInfos];
   }
 
   /**
    * エンジンの情報を取得する。存在しない場合はエラーを返す。
    */
-  fetchEngineInfo(engineId: string): EngineInfo {
+  fetchEngineInfo(engineId: EngineId): EngineInfo {
     const engineInfos = this.fetchEngineInfos();
     const engineInfo = engineInfos.find(
       (engineInfo) => engineInfo.uuid === engineId
@@ -174,7 +190,7 @@ export class EngineManager {
   /**
    * エンジンのディレクトリを取得する。存在しない場合はエラーを返す。
    */
-  fetchEngineDirectory(engineId: string): string {
+  fetchEngineDirectory(engineId: EngineId): string {
     const engineInfo = this.fetchEngineInfo(engineId);
     const engineDirectory = engineInfo.path;
     if (engineDirectory == null) {
@@ -185,28 +201,36 @@ export class EngineManager {
   }
 
   /**
-   * 全てのエンジンを起動する。
-   * FIXME: winを受け取らなくても良いようにする
+   * EngineInfosとAltPortInfoを初期化する。
    */
-  async runEngineAll(win: BrowserWindow) {
+  initializeEngineInfosAndAltPortInfo() {
+    this.defaultEngineInfos = createDefaultEngineInfos(this.defaultEngineDir);
+    this.additionalEngineInfos = this.createAdditionalEngineInfos();
+    this.altPortInfo = {};
+  }
+
+  /**
+   * 全てのエンジンを起動する。
+   */
+  async runEngineAll() {
     const engineInfos = this.fetchEngineInfos();
     log.info(`Starting ${engineInfos.length} engine/s...`);
 
     for (const engineInfo of engineInfos) {
       log.info(`ENGINE ${engineInfo.uuid}: Start launching`);
-      await this.runEngine(engineInfo.uuid, win);
+      await this.runEngine(engineInfo.uuid);
     }
   }
 
   /**
    * エンジンを起動する。
-   * FIXME: winを受け取らなくても良いようにする
    */
-  async runEngine(engineId: string, win: BrowserWindow) {
+  async runEngine(engineId: EngineId) {
     const engineInfos = this.fetchEngineInfos();
     const engineInfo = engineInfos.find(
       (engineInfo) => engineInfo.uuid === engineId
     );
+
     if (!engineInfo)
       throw new Error(`No such engineInfo registered: engineId == ${engineId}`);
 
@@ -222,6 +246,60 @@ export class EngineManager {
       return;
     }
 
+    // { hostname (localhost), port (50021) } <- url (http://localhost:50021)
+    const engineHostInfo = url2HostInfo(new URL(engineInfo.host));
+
+    log.info(
+      `ENGINE ${engineId}: Checking whether port ${engineHostInfo.port} is assignable...`
+    );
+
+    if (
+      !(await isAssignablePort(engineHostInfo.port, engineHostInfo.hostname))
+    ) {
+      // ポートを既に割り当てているプロセスidの取得
+      const pid = await getPidFromPort(engineHostInfo);
+      if (pid != undefined) {
+        const processName = await getProcessNameFromPid(engineHostInfo, pid);
+        log.warn(
+          `ENGINE ${engineId}: Port ${engineHostInfo.port} has already been assigned by ${processName} (pid=${pid})`
+        );
+      } else {
+        // ポートは使用不可能だがプロセスidは見つからなかった
+        log.warn(
+          `ENGINE ${engineId}: Port ${engineHostInfo.port} was unavailable`
+        );
+      }
+
+      // 代替ポートの検索
+      const altPort = await findAltPort(
+        engineHostInfo.port,
+        engineHostInfo.hostname
+      );
+
+      // 代替ポートが見つからないとき
+      if (altPort == undefined) {
+        log.error(`ENGINE ${engineId}: No Alternative Port Found`);
+        dialog.showErrorBox(
+          `${engineInfo.name} の起動に失敗しました`,
+          `${engineHostInfo.port}番ポートの代わりに利用可能なポートが見つかりませんでした。PCを再起動してください。`
+        );
+        app.exit(1);
+        throw new Error("No Alternative Port Found");
+      }
+
+      // 代替ポートの情報
+      this.altPortInfo[engineId] = {
+        from: engineHostInfo.port,
+        to: altPort,
+      };
+
+      // 代替ポートを設定
+      engineInfo.host = `${engineHostInfo.protocol}//${engineHostInfo.hostname}:${altPort}`;
+      log.warn(
+        `ENGINE ${engineId}: Applied Alternative Port: ${engineHostInfo.port} -> ${altPort}`
+      );
+    }
+
     log.info(`ENGINE ${engineId}: Starting process`);
 
     if (!(engineId in this.engineProcessContainers)) {
@@ -233,18 +311,28 @@ export class EngineManager {
     const engineProcessContainer = this.engineProcessContainers[engineId];
     engineProcessContainer.willQuitEngine = false;
 
-    const useGpu = this.store.get("engineSettings")[engineId].useGpu;
+    const engineSetting = this.store.get("engineSettings")[engineId];
+    if (engineSetting == undefined)
+      throw new Error(`No such engineSetting: engineId == ${engineId}`);
+
+    const useGpu = engineSetting.useGpu;
     log.info(`ENGINE ${engineId} mode: ${useGpu ? "GPU" : "CPU"}`);
 
     // エンジンプロセスの起動
     const enginePath = engineInfo.executionFilePath;
-    const args = engineInfo.executionArgs.concat(useGpu ? ["--use_gpu"] : []);
+    const args = engineInfo.executionArgs.concat(useGpu ? ["--use_gpu"] : [], [
+      "--host",
+      new URL(engineInfo.host).hostname,
+      "--port",
+      new URL(engineInfo.host).port,
+    ]);
 
     log.info(`ENGINE ${engineId} path: ${enginePath}`);
     log.info(`ENGINE ${engineId} args: ${JSON.stringify(args)}`);
 
     const engineProcess = spawn(enginePath, args, {
       cwd: path.dirname(enginePath),
+      env: { ...process.env, VV_OUTPUT_LOG_UTF8: "1" },
     });
     engineProcessContainer.engineProcess = engineProcess;
 
@@ -256,14 +344,16 @@ export class EngineManager {
       log.error(`ENGINE ${engineId} STDERR: ${data.toString("utf-8")}`);
     });
 
+    // onEngineProcessErrorを一度だけ呼ぶためのフラグ。"error"と"close"がどちらも呼ばれることがある。
+    // 詳細 https://github.com/VOICEVOX/voicevox/pull/1053/files#r1051436950
+    let errorNotified = false;
+
     engineProcess.on("error", (err) => {
       log.error(`ENGINE ${engineId} ERROR: ${err}`);
-      // FIXME: "close"イベントでダイアログが表示されて２回表示されてしまうのを防ぐ
-      // 詳細 https://github.com/VOICEVOX/voicevox/pull/1053/files#r1051436950
-      dialog.showErrorBox(
-        "音声合成エンジンエラー",
-        `音声合成エンジンが異常終了しました。${err}`
-      );
+      if (!errorNotified) {
+        errorNotified = true;
+        this.onEngineProcessError(engineInfo, err);
+      }
     });
 
     engineProcess.on("close", (code, signal) => {
@@ -273,12 +363,14 @@ export class EngineManager {
       log.info(`ENGINE ${engineId}: Process exited with code ${code}`);
 
       if (!engineProcessContainer.willQuitEngine) {
-        ipcMainSend(win, "DETECTED_ENGINE_ERROR", { engineId });
-        const dialogMessage =
+        const errorMessage =
           engineInfos.length === 1
             ? "音声合成エンジンが異常終了しました。エンジンを再起動してください。"
             : `${engineInfo.name}が異常終了しました。エンジンを再起動してください。`;
-        dialog.showErrorBox("音声合成エンジンエラー", dialogMessage);
+        if (!errorNotified) {
+          errorNotified = true;
+          this.onEngineProcessError(engineInfo, new Error(errorMessage));
+        }
       }
     });
   }
@@ -286,10 +378,12 @@ export class EngineManager {
   /**
    * 全てのエンジンに対し、各エンジンを終了するPromiseを返す。
    */
-  killEngineAll(): Record<string, Promise<void>> {
-    const killingProcessPromises: Record<string, Promise<void>> = {};
+  killEngineAll(): Record<EngineId, Promise<void>> {
+    const killingProcessPromises: Record<EngineId, Promise<void>> = {};
 
-    for (const engineId of Object.keys(this.engineProcessContainers)) {
+    // FIXME: engineProcessContainersをMapにする
+    for (const engineIdStr of Object.keys(this.engineProcessContainers)) {
+      const engineId = EngineId(engineIdStr);
       const promise = this.killEngine(engineId);
       if (promise === undefined) continue;
 
@@ -307,7 +401,7 @@ export class EngineManager {
    * Promise.reject: エンジンプロセスのキルに失敗した（非同期）
    * undefined: エンジンプロセスのキルが開始されなかった＝エンジンプロセスがすでに停止している（同期）
    */
-  killEngine(engineId: string): Promise<void> | undefined {
+  killEngine(engineId: EngineId): Promise<void> | undefined {
     const engineProcessContainer = this.engineProcessContainers[engineId];
     if (!engineProcessContainer) {
       log.error(`No such engineProcessContainer: engineId == ${engineId}`);
@@ -362,9 +456,8 @@ export class EngineManager {
 
   /**
    * エンジンを再起動する。
-   * FIXME: winを受け取らなくても良いようにする
    */
-  async restartEngine(engineId: string, win: BrowserWindow) {
+  async restartEngine(engineId: EngineId) {
     // FIXME: killEngine関数を使い回すようにする
     await new Promise<void>((resolve, reject) => {
       const engineProcessContainer: EngineProcessContainer | undefined =
@@ -385,7 +478,7 @@ export class EngineManager {
           `ENGINE ${engineId}: Process is not started yet or already killed. Starting process...`
         );
 
-        this.runEngine(engineId, win);
+        this.runEngine(engineId);
         resolve();
         return;
       }
@@ -398,14 +491,14 @@ export class EngineManager {
       const restartEngineOnProcessClosedCallback = () => {
         log.info(`ENGINE ${engineId}: Process killed. Restarting process...`);
 
-        this.runEngine(engineId, win);
+        this.runEngine(engineId);
         resolve();
       };
 
-      if (engineProcess === undefined || engineProcess.pid === undefined)
-        throw Error(
-          "engineProcess === undefined || engineProcess.pid === undefined"
-        );
+      if (engineProcess === undefined)
+        throw Error("engineProcess === undefined");
+      if (engineProcess.pid === undefined)
+        throw Error("engineProcess.pid === undefined");
 
       engineProcess.once("close", restartEngineOnProcessClosedCallback);
 
@@ -449,16 +542,8 @@ export class EngineManager {
     );
     let manifestContent: MinimumEngineManifest;
     try {
-      manifestContent = JSON.parse(manifest);
+      manifestContent = minimumEngineManifestSchema.parse(JSON.parse(manifest));
     } catch (e) {
-      return "invalidManifest";
-    }
-
-    if (
-      ["name", "uuid", "port", "command", "icon"].some(
-        (key) => !(key in manifestContent)
-      )
-    ) {
       return "invalidManifest";
     }
 

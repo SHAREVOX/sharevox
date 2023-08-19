@@ -4,15 +4,15 @@
     @mouseleave="handleMouseHover(false)"
   >
     <q-badge
-      class="value-label"
-      color="primary-light"
-      text-color="display-on-primary"
       v-if="
         !disable && (valueLabel.visible || previewSlider.state.isPanning.value)
       "
+      class="value-label"
+      color="primary-light"
+      text-color="display-on-primary"
     >
       {{
-        previewSlider.state.currentValue.value
+        previewSlider.state.currentValue.value != undefined
           ? previewSlider.state.currentValue.value.toFixed(precisionComputed)
           : undefined
       }}
@@ -22,7 +22,7 @@
       reverse
       snap
       color="primary-light"
-      trackSize="2.5px"
+      track-size="2.5px"
       :style="clipPathComputed"
       :min="previewSlider.qSliderProps.min.value"
       :max="previewSlider.qSliderProps.max.value"
@@ -39,9 +39,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed, reactive } from "vue";
 import { previewSliderHelper } from "@/helpers/previewSliderHelper";
 import { MoraDataType } from "@/type/preload";
-import { computed, reactive } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -76,7 +76,7 @@ const emit =
       moraIndex: number,
       newValue: number,
       type: MoraDataType
-    ): void;
+    ): Promise<void>;
     (
       e: "mouseOver",
       isOver: boolean,
@@ -86,9 +86,8 @@ const emit =
     ): void;
   }>();
 
-const changeValue = (newValue: number, type: MoraDataType = props.type) => {
+const changeValue = (newValue: number, type: MoraDataType = props.type) =>
   emit("changeValue", props.accentPhraseIndex, props.moraIndex, newValue, type);
-};
 
 const previewSlider = previewSliderHelper({
   modelValue: () => props.value,

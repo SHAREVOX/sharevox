@@ -1,6 +1,6 @@
 @use './variables' as vars;
 @use './colors' as colors;
-@import './fonts';
+@import "./fonts";
 
 // 優先度を強引に上げる
 body:not(#dummy) {
@@ -100,6 +100,13 @@ img {
 
 .transparent-backdrop > .q-dialog__backdrop {
   background: transparent; // デフォルトの設定だと全画面ダイアログが出る際に黒背景がちらつく
+}
+
+// トースト通知と通知内にあるボタン
+.text-toast-display,
+.text-toast-display-warning,
+.q-notification__actions .q-btn {
+  font-weight: bold;
 }
 
 // 設定とかのヘッダーの色
@@ -231,4 +238,24 @@ img {
 }
 .bg-toolbar-button-display {
   background: colors.$toolbar-button-display;
+}
+
+.bg-toast {
+  background: colors.$toast;
+}
+.text-toast-display {
+  color: colors.$toast-display;
+}
+.text-toast-button-display {
+  color: colors.$toast-button-display;
+}
+
+.bg-toast-warning {
+  background: colors.$toast-warning;
+}
+.text-toast-display-warning {
+  color: colors.$toast-display-warning;
+}
+.text-toast-button-display-warning {
+  color: colors.$toast-button-display-warning;
 }

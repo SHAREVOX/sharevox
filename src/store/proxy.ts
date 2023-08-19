@@ -1,11 +1,11 @@
+import { ProxyStoreState, ProxyStoreTypes, EditorAudioQuery } from "./type";
+import { createPartialStore } from "./vuex";
 import {
   IEngineConnectorFactory,
   OpenAPIEngineConnectorFactory,
 } from "@/infrastructures/EngineConnector";
 import { AudioQuery } from "@/openapi";
 import { EngineInfo } from "@/type/preload";
-import { ProxyStoreState, ProxyStoreTypes, EditorAudioQuery } from "./type";
-import { createPartialStore } from "./vuex";
 
 export const proxyStoreState: ProxyStoreState = {};
 
@@ -23,8 +23,10 @@ const proxyStoreCreator = (_engineFactory: IEngineConnectorFactory) => {
         const instance = _engineFactory.instance(engineInfo.host);
         return Promise.resolve({
           invoke: (v) => (arg) =>
+            // FIXME: anyを使わないようにする
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             instance[v](arg) as any,
         });
       },
