@@ -8,7 +8,7 @@ Windows／Mac／Linux 搭載の PC に対応しています。
 
 ※Windows：Windows 10・Windows 11  
 ※Mac：macOS Catalina 以降  
-※Linux：Ubuntu 18.04・Ubuntu 20.04
+※Linux：Ubuntu 20.04
 
 #### GPU 版
 
@@ -87,11 +87,11 @@ SHAREVOX Twitter アカウント [@sharevox_pj](https://twitter.com/sharevox_pj)
 
 #### Windows 版
 
-`C:\Users\(ユーザー名)\AppData\Roaming\sharevox`
+`C:\Users\(ユーザー名)\AppData\Roaming\sharevox\config.json`
 
 #### Mac 版
 
-`/Users/(ユーザー名)/Library/Application Support/sharevox`
+`/Users/(ユーザー名)/Library/Application Support/sharevox/config.json`
 
 ### Q. エンジンの起動が失敗したというエラーが表示されます。
 
@@ -162,6 +162,12 @@ sudo apt install libfuse2
 
 音声の最初や最後に音声クレジットを挿入してください。  
 キャラクターの利用規約に案内がある場合はそちらを優先してください。
+
+### Q. 音楽配信サービスなどで公開する場合のクレジット表記はどうすれば良いですか？
+
+概要欄の無い楽曲投稿系プラットフォームの場合、タイトルやアーティストなどの欄にクレジットを記載するか、楽曲中に音声クレジットを挿入してください。  
+タイトルの例「タイトル (VOICEVOX:キャラクター名)」「タイトル feat. キャラクター名(VOICEVOX)」など  
+アーティストの例「キャラクター名(VOICEVOX)」「VOICEVOX:キャラクター名」など
 
 ### Q. 会社や学校で使いたいです。
 
