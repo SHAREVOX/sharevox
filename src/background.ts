@@ -111,6 +111,13 @@ protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true, stream: true } },
 ]);
 
+// VOICEVOXのアップデート情報を読み込み
+const voicevoxUpdateInfos = JSON.parse(
+  fs.readFileSync(path.join(__static, "voicevoxUpdateInfos.json"), {
+    encoding: "utf-8",
+  })
+);
+
 // 設定ファイル
 const electronStoreJsonSchema = zodToJsonSchema(electronStoreSchema);
 if (!("properties" in electronStoreJsonSchema)) {
@@ -118,6 +125,7 @@ if (!("properties" in electronStoreJsonSchema)) {
 }
 const store = new Store<ElectronStoreType>({
   schema: electronStoreJsonSchema.properties as Schema<ElectronStoreType>,
+  projectVersion: voicevoxUpdateInfos[0].version,
   migrations: {
     ">=0.13": (store) => {
       // acceptTems -> acceptTerms
@@ -161,7 +169,7 @@ const store = new Store<ElectronStoreType>({
       store.delete("useGpu");
     },
   },
-});
+} as Store.Options<ElectronStoreType>);
 
 // engine
 const vvppEngineDir = path.join(app.getPath("userData"), "vvpp-engines");
@@ -331,11 +339,6 @@ const contactText = fs.readFileSync(path.join(__static, "contact.md"), "utf-8");
 const qAndAText = fs.readFileSync(path.join(__static, "qAndA.md"), "utf-8");
 
 // アップデート情報の読み込み
-const voicevoxUpdateInfos = JSON.parse(
-  fs.readFileSync(path.join(__static, "voicevoxUpdateInfos.json"), {
-    encoding: "utf-8",
-  })
-);
 const updateInfos = JSON.parse(
   fs.readFileSync(path.join(__static, "updateInfos.json"), {
     encoding: "utf-8",
